@@ -1,0 +1,2729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MentorMatrix">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0F6E56">
+<meta name="description" content="Smart Student Management Platform — National Engineering College">
+<meta name="application-name" content="MentorMatrix">
+<title>MentorMatrix</title>
+<link rel="manifest" id="pwa-manifest-link">
+<link rel="apple-touch-icon" id="apple-icon">
+<link rel="icon" type="image/png" id="pwa-favicon">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#1D9E75;--dark:#0F6E56;--light:#E1F5EE;--accent:#378ADD;
+  --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--white:#fff;
+  --red:#E24B4A;--amber:#BA7517;--bg:#f5f7fa;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,20px);
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:16px}
+.screen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;overflow:hidden;z-index:1}
+.screen.active{display:flex}
+.topbar{background:var(--dark);color:#fff;padding:calc(var(--safe-top) + 10px) 16px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:56px}
+.topbar h2{font-size:17px;font-weight:700;flex:1}
+.topbar-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(80px + var(--safe-bottom))}
+.scroll-nopb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:0}
+.bottom-nav{background:#fff;border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;border:none;background:none;color:var(--muted);font-size:10px;font-weight:500;transition:color .15s}
+.nav-item.active{color:var(--dark)}
+.nav-item svg{width:22px;height:22px}
+.nav-dot{width:5px;height:5px;background:var(--red);border-radius:50%;position:absolute;top:-2px;right:-2px}
+.nav-icon-wrap{position:relative;display:inline-flex}
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:12px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-box{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center}
+.stat-num{font-size:26px;font-weight:800;color:var(--dark)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+.stat-sub{font-size:11px;margin-top:3px}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-gray{background:#f3f4f6;color:#374151}
+.badge-purple{background:#ede9fe;color:#5b21b6}
+.list-item{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+.list-avatar{width:42px;height:42px;border-radius:50%;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--dark);flex-shrink:0;margin-right:12px;overflow:hidden}
+.list-avatar img{width:100%;height:100%;object-fit:cover}
+.list-info{flex:1;min-width:0}
+.list-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-sub{font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-right{text-align:right;flex-shrink:0;margin-left:10px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:#fff;color:var(--text);outline:none;font-family:inherit;-webkit-appearance:none}
+.form-input:focus{border-color:var(--green)}
+.form-input[readonly]{background:#f9fafb;color:var(--muted)}
+textarea.form-input{resize:none;line-height:1.5}
+select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;width:100%}
+.btn-primary{background:var(--dark);color:#fff}
+.btn-primary:active{background:#0a4f3d}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:active{background:var(--dark)}
+.btn-outline{background:#fff;color:var(--dark);border:1.5px solid var(--dark)}
+.btn-outline:active{background:var(--light)}
+.btn-red{background:#fee2e2;color:#991b1b}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:9px;width:auto;display:inline-flex}
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn-row .btn{flex:1}
+#login-screen{background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 60%,#378ADD 100%);justify-content:flex-end}
+.login-bg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.login-logo{font-size:52px;margin-bottom:8px}
+.login-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px}
+.login-sub{font-size:14px;color:rgba(255,255,255,.7);margin-top:4px;text-align:center}
+.login-sheet{background:#fff;border-radius:28px 28px 0 0;padding:28px 24px calc(28px + var(--safe-bottom));flex-shrink:0}
+.role-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;background:#f3f4f6;border-radius:12px;padding:4px;margin-bottom:20px}
+.role-btn{padding:9px;text-align:center;font-size:12px;font-weight:700;border-radius:9px;border:none;background:none;color:var(--muted);cursor:pointer;transition:all .2s}
+.role-btn.active{background:#fff;color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.att-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.att-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;border:2px solid transparent;user-select:none}
+.att-cell .day-num{font-size:13px;font-weight:800}
+.att-P{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+.att-A{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.att-L{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.att-OD{background:#dbeafe;color:#1e40af;border-color:#93c5fd}
+.att-H{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb}
+.att-future{background:#f9fafb;color:#d1d5db;border-color:transparent}
+.att-header{background:none;color:var(--muted);font-size:10px;font-weight:700;aspect-ratio:auto;padding:4px 0;border:none}
+.marks-table{width:100%;border-collapse:collapse;font-size:13px}
+.marks-table th{background:#f8f9fa;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border)}
+.marks-table td{padding:10px 8px;text-align:center;border-bottom:1px solid #f0f0f0}
+.marks-table td:first-child{text-align:left;font-weight:600;font-size:13px}
+.marks-table tr:last-child td{border-bottom:none}
+.progress-bar{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.prog-green{background:var(--green)}
+.prog-amber{background:#f59e0b}
+.prog-red{background:var(--red)}
+.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;background:#fafafa}
+.upload-zone:active{border-color:var(--green);background:var(--light)}
+.upload-icon{font-size:40px;margin-bottom:10px}
+.upload-title{font-size:15px;font-weight:700;color:var(--text)}
+.upload-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.photo-circle{width:88px;height:88px;border-radius:50%;background:var(--light);border:3px dashed var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0}
+.photo-circle img{width:100%;height:100%;object-fit:cover}
+.announce-item{background:#fff;border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.announce-item h4{font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.announce-item p{font-size:13px;color:var(--muted);line-height:1.6}
+.announce-meta{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px}
+.btn-wa{background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;border:none;cursor:pointer;width:100%}
+.search-bar{display:flex;align-items:center;background:#fff;border-radius:12px;padding:0 14px;border:1.5px solid var(--border);margin-bottom:14px}
+.search-bar input{flex:1;border:none;padding:12px 8px;font-size:15px;outline:none;background:transparent}
+.search-bar svg{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+.segment{display:flex;background:#f3f4f6;border-radius:10px;padding:3px;margin-bottom:14px;gap:2px}
+.seg-btn{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:700;border:none;background:none;border-radius:8px;color:var(--muted);cursor:pointer;transition:all .15s}
+.seg-btn.active{background:#fff;color:var(--dark);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.section-divider{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:var(--light);color:var(--dark);border-radius:20px;font-size:12px;font-weight:700;margin:3px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + var(--safe-bottom))}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:16px}
+.tutor-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.fab{position:fixed;bottom:calc(80px + var(--safe-bottom) + 10px);right:16px;width:54px;height:54px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(15,110,86,.4);border:none;cursor:pointer;z-index:10;font-size:24px;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-state .emoji{font-size:48px;display:block;margin-bottom:12px}
+.empty-state p{font-size:15px;font-weight:600}
+.empty-state small{font-size:13px;margin-top:4px;display:block}
+.grade-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;border:3px solid;flex-shrink:0}
+.grade-A{border-color:#059669;color:#059669;background:#d1fae5}
+.grade-B{border-color:#2563eb;color:#2563eb;background:#dbeafe}
+.grade-C{border-color:#d97706;color:#d97706;background:#fef3c7}
+.grade-D{border-color:#dc2626;color:#dc2626;background:#fee2e2}
+.alert{border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px}
+.alert-green{background:#d1fae5;color:#065f46}
+.alert-amber{background:#fef3c7;color:#92400e}
+.alert-red{background:#fee2e2;color:#991b1b}
+.alert-blue{background:#dbeafe;color:#1e40af}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:15px;font-weight:600}
+.toggle-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.toggle{width:48px;height:28px;border-radius:14px;background:#e5e7eb;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.toggle.on{background:var(--green)}
+.toggle.on::after{transform:translateX(20px)}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:calc(90px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.mark-entry-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
+.mark-entry-row:last-child{border-bottom:none}
+.mark-input{width:65px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;text-align:center;outline:none;font-weight:700}
+.mark-input:focus{border-color:var(--green)}
+.sub-att-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.sub-att-row:last-child{border-bottom:none}
+.profile-hero{background:linear-gradient(135deg,var(--dark),var(--green));padding:28px 20px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.profile-name{color:#fff;font-size:19px;font-weight:800;line-height:1.2}
+.profile-roll{color:rgba(255,255,255,.75);font-size:13px;margin-top:3px}
+.profile-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.profile-badge{background:rgba(255,255,255,.2);color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.entry-table{width:100%;font-size:13px;border-collapse:collapse}
+.entry-table th{background:#f8f9fa;padding:8px;text-align:center;font-size:11px;font-weight:700;color:var(--muted)}
+.entry-table td{padding:8px 4px;border-bottom:1px solid #f0f0f0;text-align:center;vertical-align:middle}
+.entry-table td:first-child{text-align:left;padding-left:8px;font-weight:600;font-size:12px;max-width:100px;word-break:break-word}
+.mini-input{width:48px;padding:6px 4px;border:1.5px solid var(--border);border-radius:7px;font-size:14px;text-align:center;outline:none;font-weight:700}
+.mini-input:focus{border-color:var(--green)}
+/* PASSWORD INPUT */
+.pw-wrap{position:relative}
+.pw-wrap .form-input{padding-right:44px}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:4px}
+/* DOWNLOAD MODAL */
+.dl-option{display:flex;align-items:center;gap:14px;padding:16px;border-radius:12px;background:#f8f9fa;margin-bottom:10px;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.dl-option:active,.dl-option:hover{border-color:var(--green);background:var(--light)}
+.dl-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.dl-info h4{font-size:14px;font-weight:700}
+.dl-info p{font-size:12px;color:var(--muted);margin-top:2px}
+/* ADD STUDENT FORM */
+.form-section-title{font-size:13px;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 6px;border-bottom:2px solid var(--light);margin-bottom:12px}
+/* PARENT PORTAL STYLES */
+#parent-screen .profile-hero{background:linear-gradient(135deg,#1e3a5f,#378ADD)}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- HIDDEN FILE INPUTS -->
+<input type="file" id="photo-input" accept="image/*" capture="camera" style="display:none" onchange="handlePhotoUpload(this)">
+<input type="file" id="tutor-photo-input" accept="image/*" capture="camera" style="display:none" onchange="handleTutorPhotoUpload(this)">
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div class="screen active" id="login-screen">
+  <div class="login-bg">
+    <div class="login-logo">🎓</div>
+    <div class="login-title">MentorMatrix</div>
+    <div class="login-sub">Smart Student Management Platform<br>National Engineering College</div>
+  </div>
+  <div class="login-sheet">
+    <div class="role-bar">
+      <button class="role-btn active" onclick="setRole('student')">Student</button>
+      <button class="role-btn" onclick="setRole('tutor')">Tutor</button>
+      <button class="role-btn" onclick="setRole('hod')">HOD</button>
+      <button class="role-btn" onclick="setRole('parent')">Parent</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username / Roll No</label>
+      <input class="form-input" id="login-user" type="text" placeholder="e.g. 25106001" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="pw-wrap">
+        <input class="form-input" id="login-pass" type="password" placeholder="Enter password" autocomplete="current-password">
+        <button class="pw-toggle" onclick="togglePw('login-pass',this)" type="button">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()" id="login-btn">Sign In</button>
+    <div style="margin-top:14px;background:#f3f4f6;border-radius:10px;padding:12px;font-size:12px;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--text)">Demo Credentials</strong><br>
+      Student: <strong>25106001</strong> / pass123<br>
+      Tutor: <strong>tutor01</strong> / pass123<br>
+      HOD: <strong>hod01</strong> / pass123<br>
+      Parent: <strong>parent25106001</strong> / pass123
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT SCREENS ===================== -->
+<!-- S: HOME -->
+<div class="screen" id="s-home">
+  <div class="topbar">
+    <div style="flex:1">
+      <div style="font-size:12px;opacity:.75">Welcome back 👋</div>
+      <h2 id="s-home-name" style="font-size:18px">Student</h2>
+    </div>
+    <button class="topbar-btn" onclick="openDownloadModal('student')" title="Download Report">⬇</button>
+    <button class="topbar-btn" onclick="goTo('s-announcements')">
+      <div class="nav-icon-wrap">🔔<span class="nav-dot"></span></div>
+    </button>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-num" id="s-att-pct">—%</div>
+        <div class="stat-label">Attendance</div>
+        <div class="stat-sub" id="s-att-status"></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="s-cgpa">8.4</div>
+        <div class="stat-label">CGPA</div>
+        <div class="stat-sub" style="color:var(--green);font-weight:700">Top 15%</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-num" id="s-present-days">—</div>
+        <div class="stat-label">Days Present</div>
+        <div class="stat-sub">This month</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="s-absent-days" style="color:var(--red)">—</div>
+        <div class="stat-label">Days Absent</div>
+        <div class="stat-sub">This month</div>
+      </div>
+    </div>
+    <div id="s-home-alert"></div>
+    <div class="card">
+      <div class="card-title">📅 This Month's Attendance</div>
+      <div id="s-mini-cal"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <span class="badge badge-green">P Present</span>
+        <span class="badge badge-red">A Absent</span>
+        <span class="badge badge-amber">L Leave</span>
+        <span class="badge badge-blue">OD On Duty</span>
+        <span class="badge badge-gray">H Holiday</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📚 Recent Marks</div>
+      <div id="s-home-marks"></div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="goTo('s-marks')">View All →</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📢 Latest Announcement</div>
+      <div id="s-home-announce"></div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="goTo('s-announcements')">View All →</button>
+    </div>
+  </div>
+  <div class="bottom-nav" id="s-nav">
+    <button class="nav-item active" onclick="goTab('s-home','s-nav',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('s-attendance','s-nav',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('s-marks','s-nav',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Marks</button>
+    <button class="nav-item" onclick="goTab('s-profile','s-nav',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    <button class="nav-item" onclick="goTab('s-more','s-nav',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- S: ATTENDANCE -->
+<div class="screen" id="s-attendance">
+  <div class="topbar"><h2>My Attendance</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="openDownloadModal('attendance')" title="Download">⬇</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num" id="sa-present" style="color:var(--green)">—</div><div class="stat-label">Present</div></div>
+      <div class="stat-box"><div class="stat-num" id="sa-absent" style="color:var(--red)">—</div><div class="stat-label">Absent</div></div>
+      <div class="stat-box"><div class="stat-num" id="sa-pct">—%</div><div class="stat-label">Overall %</div></div>
+      <div class="stat-box"><div class="stat-num" id="sa-needed" style="color:var(--amber)">—</div><div class="stat-label">Days Needed (75%)</div></div>
+    </div>
+    <div id="sa-warning"></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <button class="topbar-btn" style="background:var(--light);color:var(--dark)" onclick="changeMonth(-1)">‹</button>
+        <div style="font-size:15px;font-weight:800" id="sa-month-label">Nov 2025</div>
+        <button class="topbar-btn" style="background:var(--light);color:var(--dark)" onclick="changeMonth(1)">›</button>
+      </div>
+      <div id="sa-cal"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <span class="badge badge-green">P</span><span class="badge badge-red">A</span>
+        <span class="badge badge-amber">L</span><span class="badge badge-blue">OD</span><span class="badge badge-gray">H</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Subject-wise Attendance</div>
+      <div id="sa-subjects"></div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="s-nav2">
+    <button class="nav-item" onclick="goTab('s-home','s-nav2',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item active" onclick="goTab('s-attendance','s-nav2',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('s-marks','s-nav2',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Marks</button>
+    <button class="nav-item" onclick="goTab('s-profile','s-nav2',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    <button class="nav-item" onclick="goTab('s-more','s-nav2',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- S: MARKS -->
+<div class="screen" id="s-marks">
+  <div class="topbar"><h2>Marks &amp; Grades</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="openDownloadModal('marks')" title="Download">⬇</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="s-marks-content"></div>
+  </div>
+  <div class="bottom-nav" id="s-nav3">
+    <button class="nav-item" onclick="goTab('s-home','s-nav3',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('s-attendance','s-nav3',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</button>
+    <button class="nav-item active" onclick="goTab('s-marks','s-nav3',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Marks</button>
+    <button class="nav-item" onclick="goTab('s-profile','s-nav3',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    <button class="nav-item" onclick="goTab('s-more','s-nav3',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- S: PROFILE -->
+<div class="screen" id="s-profile">
+  <div class="profile-hero" id="s-profile-hero">
+    <div class="photo-circle" id="s-photo-circle" onclick="uploadStudentPhoto()">
+      <div style="font-size:36px;text-align:center">👤<br><span style="font-size:10px;color:var(--dark)">Change</span></div>
+    </div>
+    <div>
+      <div class="profile-name" id="s-profile-name">Student</div>
+      <div class="profile-roll" id="s-profile-roll">Roll No.</div>
+      <div class="profile-badges" id="s-profile-badges"></div>
+    </div>
+  </div>
+  <div class="segment" style="margin:12px 16px 0;padding:3px">
+    <button class="seg-btn active" onclick="showProfileTab(0)">Personal</button>
+    <button class="seg-btn" onclick="showProfileTab(1)">Parents</button>
+    <button class="seg-btn" onclick="showProfileTab(2)">Academic</button>
+    <button class="seg-btn" onclick="showProfileTab(3)">Bank</button>
+  </div>
+  <div class="scroll-nopb" style="padding:12px 16px">
+    <div id="profile-tab-0" class="profile-tab"></div>
+    <div id="profile-tab-1" class="profile-tab" style="display:none"></div>
+    <div id="profile-tab-2" class="profile-tab" style="display:none"></div>
+    <div id="profile-tab-3" class="profile-tab" style="display:none"></div>
+    <div style="height:80px"></div>
+  </div>
+  <div class="bottom-nav" id="s-nav4">
+    <button class="nav-item" onclick="goTab('s-home','s-nav4',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('s-attendance','s-nav4',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Att</button>
+    <button class="nav-item" onclick="goTab('s-marks','s-nav4',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Marks</button>
+    <button class="nav-item active" onclick="goTab('s-profile','s-nav4',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    <button class="nav-item" onclick="goTab('s-more','s-nav4',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- S: MORE -->
+<div class="screen" id="s-more">
+  <div class="topbar"><h2>More</h2></div>
+  <div class="scroll">
+    <div class="section-divider">Academic</div>
+    <div class="card" style="padding:0">
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('s-scholarships')">
+        <div class="list-avatar" style="background:#fef3c7;color:#92400e">🎓</div>
+        <div class="list-info"><div class="list-name">Scholarships</div><div class="list-sub">View &amp; apply for scholarships</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('s-achievements')">
+        <div class="list-avatar" style="background:#ede9fe;color:#5b21b6">🏆</div>
+        <div class="list-info"><div class="list-name">Achievements</div><div class="list-sub">Competitions &amp; extracurricular</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('s-announcements')">
+        <div class="list-avatar" style="background:#dbeafe;color:#1e40af">📢</div>
+        <div class="list-info"><div class="list-name">Announcements</div><div class="list-sub">Department notices</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+    </div>
+    <div class="section-divider">Account</div>
+    <div class="card" style="padding:0">
+      <div class="list-item" style="padding:14px 16px" onclick="openChangePassword('student')">
+        <div class="list-avatar" style="background:#dbeafe;color:#1e40af">🔑</div>
+        <div class="list-info"><div class="list-name">Change Password</div><div class="list-sub">Update your login password</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px;border-bottom:none" onclick="doLogout()">
+        <div class="list-avatar" style="background:#fee2e2;color:#991b1b">🚪</div>
+        <div class="list-info"><div class="list-name" style="color:var(--red)">Sign Out</div><div class="list-sub">Logout from MentorMatrix</div></div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">MentorMatrix v2.0<br>National Engineering College · Student Management</div>
+  </div>
+  <div class="bottom-nav" id="s-nav5">
+    <button class="nav-item" onclick="goTab('s-home','s-nav5',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('s-attendance','s-nav5',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Att</button>
+    <button class="nav-item" onclick="goTab('s-marks','s-nav5',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Marks</button>
+    <button class="nav-item" onclick="goTab('s-profile','s-nav5',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    <button class="nav-item active" onclick="goTab('s-more','s-nav5',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- S: SCHOLARSHIPS -->
+<div class="screen" id="s-scholarships">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goBack()">←</button>
+    <h2>Scholarships</h2>
+  </div>
+  <div class="scroll">
+    <div id="s-scholarship-content"></div>
+    <div class="card">
+      <div class="card-title">➕ Apply for Scholarship</div>
+      <div class="form-group"><label class="form-label">Scheme Name</label><input class="form-input" id="sch-name" placeholder="e.g. BC Scholarship"></div>
+      <div class="form-group"><label class="form-label">Certificate Number</label><input class="form-input" id="sch-cert" placeholder="Enter cert number"></div>
+      <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-input" id="sch-amt" type="number" placeholder="0"></div>
+      <button class="btn btn-primary" onclick="addScholarship()">Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- S: ACHIEVEMENTS -->
+<div class="screen" id="s-achievements">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goBack()">←</button>
+    <h2>Achievements</h2>
+  </div>
+  <div class="scroll">
+    <div id="s-achievements-content"></div>
+    <div class="card">
+      <div class="card-title">➕ Add Achievement</div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="ach-title" placeholder="e.g. First Prize – Hackathon"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-input" id="ach-cat"><option>Sports</option><option>Technical</option><option>Cultural</option><option>Academic</option><option>Community</option><option>Other</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Level</label>
+        <select class="form-input" id="ach-level"><option>College Level</option><option>District Level</option><option>State Level</option><option>National Level</option><option>International Level</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Year</label><input class="form-input" id="ach-year" type="number" placeholder="2025"></div>
+      <button class="btn btn-primary" onclick="addAchievement()">Add Achievement</button>
+    </div>
+  </div>
+</div>
+
+<!-- S: ANNOUNCEMENTS (student view) -->
+<div class="screen" id="s-announcements">
+  <div class="topbar">
+    <button class="topbar-btn" onclick="goBack()">←</button>
+    <h2>Announcements</h2>
+  </div>
+  <div class="scroll">
+    <div class="segment">
+      <button class="seg-btn active" onclick="filterAnnounce('all',this)">All</button>
+      <button class="seg-btn" onclick="filterAnnounce('Academic',this)">Academic</button>
+      <button class="seg-btn" onclick="filterAnnounce('Event',this)">Events</button>
+      <button class="seg-btn" onclick="filterAnnounce('General',this)">General</button>
+    </div>
+    <div id="announce-list"></div>
+  </div>
+</div>
+
+<!-- ===================== TUTOR SCREENS ===================== -->
+<!-- T: HOME -->
+<div class="screen" id="t-home">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;flex:1">
+      <div class="photo-circle" style="width:40px;height:40px;border-width:2px;flex-shrink:0;cursor:pointer" onclick="uploadTutorPhoto()" id="t-home-avatar">
+        <div style="font-size:20px">👩‍🏫</div>
+      </div>
+      <div>
+        <div style="font-size:12px;opacity:.75">Tutor Dashboard</div>
+        <div style="font-size:16px;font-weight:800" id="t-home-name">Tutor</div>
+      </div>
+    </div>
+    <button class="topbar-btn" onclick="openDownloadModal('tutor')" title="Export">⬇</button>
+    <button class="topbar-btn" onclick="goTo('t-announcements')">🔔</button>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num" id="t-total-students">—</div><div class="stat-label">My Students</div></div>
+      <div class="stat-box"><div class="stat-num" id="t-present-today" style="color:var(--green)">—</div><div class="stat-label">Present Today</div></div>
+      <div class="stat-box"><div class="stat-num" id="t-absent-today" style="color:var(--red)">—</div><div class="stat-label">Absent Today</div></div>
+      <div class="stat-box"><div class="stat-num" id="t-low-att" style="color:var(--amber)">—</div><div class="stat-label">Below 75%</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ At-Risk Students</div>
+      <div id="t-atrisk-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-primary" onclick="goTab('t-attendance','t-nav',1)">📋 Mark Today's Attendance</button>
+        <button class="btn btn-outline" onclick="goTab('t-messages','t-nav',3)">💬 Send Parent Messages</button>
+        <button class="btn btn-outline" onclick="goTo('t-import')">📂 Import Students from Excel</button>
+        <button class="btn btn-outline" onclick="goTo('t-add-student')">➕ Add New Student</button>
+        <button class="btn btn-outline" onclick="openEditToggle()">🔓 Enable Student Profile Editing</button>
+        <button class="btn btn-outline" onclick="openChangePassword('tutor')">🔑 Change Password</button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="t-nav">
+    <button class="nav-item active" onclick="goTab('t-home','t-nav',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('t-attendance','t-nav',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('t-students','t-nav',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('t-messages','t-nav',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="goTab('t-more','t-nav',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- T: ATTENDANCE -->
+<div class="screen" id="t-attendance">
+  <div class="topbar">
+    <h2>Mark Attendance</h2>
+    <div class="topbar-right">
+      <input type="date" id="t-att-date" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;width:130px" onchange="loadAttendanceForDate(this.value)">
+    </div>
+  </div>
+  <div class="scroll-nopb" style="padding:12px 16px">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="markAll('P')">✓ All Present</button>
+      <button class="btn btn-outline btn-sm" onclick="markAll('A')">✗ All Absent</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAttendance()">💾 Save &amp; Notify</button>
+    </div>
+    <div id="t-att-list"></div>
+    <div style="height:80px"></div>
+  </div>
+  <div class="bottom-nav" id="t-nav2">
+    <button class="nav-item" onclick="goTab('t-home','t-nav2',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item active" onclick="goTab('t-attendance','t-nav2',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('t-students','t-nav2',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('t-messages','t-nav2',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="goTab('t-more','t-nav2',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- T: STUDENTS -->
+<div class="screen" id="t-students">
+  <div class="topbar"><h2>Students</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="openDownloadModal('studentList')" title="Export">⬇</button>
+    </div>
+  </div>
+  <div class="scroll-nopb" style="padding:12px 16px">
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="t-search" placeholder="Search name or roll number..." oninput="filterStudentList(this.value)">
+    </div>
+    <div id="t-student-list"></div>
+    <div style="height:80px"></div>
+  </div>
+  <button class="fab" onclick="goTo('t-add-student')">+</button>
+  <div class="bottom-nav" id="t-nav3">
+    <button class="nav-item" onclick="goTab('t-home','t-nav3',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('t-attendance','t-nav3',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Attendance</button>
+    <button class="nav-item active" onclick="goTab('t-students','t-nav3',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('t-messages','t-nav3',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="goTab('t-more','t-nav3',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- T: MESSAGES -->
+<div class="screen" id="t-messages">
+  <div class="topbar"><h2>Parent Messages</h2></div>
+  <div class="scroll">
+    <div class="alert alert-blue">💡 Messages open WhatsApp with pre-filled text. Tap Send in WhatsApp to deliver.</div>
+    <div class="form-group">
+      <label class="form-label">Select Students</label>
+      <select class="form-input" id="msg-target" onchange="updateMsgPreview()">
+        <option value="absent">Today's Absentees</option>
+        <option value="low">Below 75% Attendance</option>
+        <option value="all">All Students</option>
+        <option value="custom">Select Specific Student</option>
+      </select>
+    </div>
+    <div id="msg-custom-student" style="display:none" class="form-group">
+      <label class="form-label">Student Roll No</label>
+      <input class="form-input" id="msg-custom-roll" placeholder="e.g. 25106001" oninput="updateMsgPreview()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Message Template</label>
+      <select class="form-input" id="msg-template" onchange="setMsgTemplate()">
+        <option value="absent">Absent Notification</option>
+        <option value="low">Low Attendance Warning</option>
+        <option value="marks">Marks Reminder</option>
+        <option value="general">General Message</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Message</label>
+      <textarea class="form-input" id="msg-text" rows="5" oninput="updateMsgPreview()"></textarea>
+    </div>
+    <div class="card" style="background:#f0fdf4">
+      <div class="card-title" style="font-size:12px;color:var(--muted)">MESSAGE PREVIEW</div>
+      <div id="msg-preview" style="font-size:14px;line-height:1.6;white-space:pre-wrap"></div>
+    </div>
+    <div id="msg-wa-buttons"></div>
+    <div class="card">
+      <div class="card-title">📋 Message Log</div>
+      <div id="msg-log"></div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="t-nav4">
+    <button class="nav-item" onclick="goTab('t-home','t-nav4',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('t-attendance','t-nav4',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('t-students','t-nav4',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item active" onclick="goTab('t-messages','t-nav4',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="goTab('t-more','t-nav4',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- T: MORE -->
+<div class="screen" id="t-more">
+  <div class="topbar"><h2>More</h2></div>
+  <div class="scroll">
+    <div class="card" style="padding:0">
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('t-marks')">
+        <div class="list-avatar" style="background:#fef3c7;color:#92400e">📝</div>
+        <div class="list-info"><div class="list-name">Marks Entry</div><div class="list-sub">Enter IA, assignment &amp; exam marks</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('t-add-student')">
+        <div class="list-avatar" style="background:#d1fae5;color:#065f46">➕</div>
+        <div class="list-info"><div class="list-name">Add New Student</div><div class="list-sub">Manually add student details</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('t-import')">
+        <div class="list-avatar" style="background:#dbeafe;color:#1e40af">📂</div>
+        <div class="list-info"><div class="list-name">Import Excel</div><div class="list-sub">Auto-import student data from .xlsx</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="goTo('t-announcements')">
+        <div class="list-avatar" style="background:#ede9fe;color:#5b21b6">📢</div>
+        <div class="list-info"><div class="list-name">Announcements</div><div class="list-sub">Post &amp; view department notices</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px" onclick="openChangePassword('tutor')">
+        <div class="list-avatar" style="background:#fef3c7;color:#92400e">🔑</div>
+        <div class="list-info"><div class="list-name">Change Password</div><div class="list-sub">Update your login password</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+      <div class="list-item" style="padding:14px 16px;border-bottom:none" onclick="doLogout()">
+        <div class="list-avatar" style="background:#fee2e2;color:#991b1b">🚪</div>
+        <div class="list-info"><div class="list-name" style="color:var(--red)">Sign Out</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="t-nav5">
+    <button class="nav-item" onclick="goTab('t-home','t-nav5',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</button>
+    <button class="nav-item" onclick="goTab('t-attendance','t-nav5',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>Attendance</button>
+    <button class="nav-item" onclick="goTab('t-students','t-nav5',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('t-messages','t-nav5',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item active" onclick="goTab('t-more','t-nav5',4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>More</button>
+  </div>
+</div>
+
+<!-- T: MARKS ENTRY -->
+<div class="screen" id="t-marks">
+  <div class="topbar"><button class="topbar-btn" onclick="goBack()">←</button><h2>Marks Entry</h2></div>
+  <div class="scroll">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <select class="form-input" id="t-marks-subject" style="flex:1" onchange="renderMarksEntry()">
+        <option>Engineering Mathematics I</option><option>Engineering Physics</option>
+        <option>Circuit Theory</option><option>Programming in C</option><option>Engineering Chemistry</option>
+      </select>
+      <select class="form-input" id="t-marks-type" style="width:120px" onchange="renderMarksEntry()">
+        <option value="ia1">IA 1 /20</option><option value="ia2">IA 2 /20</option>
+        <option value="assignment">Assignment /10</option><option value="midterm">Mid Term /50</option>
+        <option value="endsem">End Sem /100</option>
+      </select>
+    </div>
+    <div class="card">
+      <div id="t-marks-entry-list"></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="saveMarks()">💾 Save Marks</button>
+    </div>
+  </div>
+</div>
+
+<!-- T: ADD STUDENT -->
+<div class="screen" id="t-add-student">
+  <div class="topbar"><button class="topbar-btn" onclick="goBack()">←</button><h2>Add New Student</h2></div>
+  <div class="scroll">
+    <div class="card">
+      <div class="form-section-title">📋 Basic Information</div>
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="ns-name" placeholder="Student full name"></div>
+      <div class="form-group"><label class="form-label">Roll Number *</label><input class="form-input" id="ns-roll" placeholder="e.g. 25106006"></div>
+      <div class="form-group"><label class="form-label">EMIS Number</label><input class="form-input" id="ns-emis" placeholder="EMIS number"></div>
+      <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" id="ns-dob" type="date"></div>
+      <div class="form-group"><label class="form-label">Gender</label>
+        <select class="form-input" id="ns-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Blood Group</label>
+        <select class="form-input" id="ns-blood"><option>A+ve</option><option>A-ve</option><option>B+ve</option><option>B-ve</option><option>O+ve</option><option>O-ve</option><option>AB+ve</option><option>AB-ve</option></select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="form-section-title">📞 Contact Details</div>
+      <div class="form-group"><label class="form-label">Mobile Number</label><input class="form-input" id="ns-mobile" type="tel" placeholder="10-digit mobile"></div>
+      <div class="form-group"><label class="form-label">Email ID</label><input class="form-input" id="ns-email" type="email" placeholder="student@email.com"></div>
+      <div class="form-group"><label class="form-label">Address</label><textarea class="form-input" id="ns-address" rows="3" placeholder="Permanent address"></textarea></div>
+      <div class="form-group"><label class="form-label">District</label><input class="form-input" id="ns-district" placeholder="District"></div>
+    </div>
+    <div class="card">
+      <div class="form-section-title">👨‍👩‍👧 Parent Details</div>
+      <div class="form-group"><label class="form-label">Father's Name</label><input class="form-input" id="ns-father" placeholder="Father's full name"></div>
+      <div class="form-group"><label class="form-label">Father's Mobile</label><input class="form-input" id="ns-fmobile" type="tel" placeholder="Father's mobile"></div>
+      <div class="form-group"><label class="form-label">Father's Occupation</label><input class="form-input" id="ns-focc" placeholder="Occupation"></div>
+      <div class="form-group"><label class="form-label">Mother's Name</label><input class="form-input" id="ns-mother" placeholder="Mother's full name"></div>
+      <div class="form-group"><label class="form-label">Mother's Mobile</label><input class="form-input" id="ns-mmobile" type="tel" placeholder="Mother's mobile"></div>
+      <div class="form-group"><label class="form-label">Annual Family Income (₹)</label><input class="form-input" id="ns-income" type="number" placeholder="0"></div>
+    </div>
+    <div class="card">
+      <div class="form-section-title">🎓 Academic Details</div>
+      <div class="form-group"><label class="form-label">Community</label>
+        <select class="form-input" id="ns-community"><option>OC</option><option>BC</option><option>MBC</option><option>SC</option><option>SCA</option><option>ST</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Caste</label><input class="form-input" id="ns-caste" placeholder="Caste"></div>
+      <div class="form-group"><label class="form-label">Religion</label><input class="form-input" id="ns-religion" placeholder="Religion"></div>
+      <div class="form-group"><label class="form-label">Aadhar Number</label><input class="form-input" id="ns-aadhar" placeholder="12-digit Aadhar"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label class="form-label">Maths (HSC)</label><input class="form-input" id="ns-maths" type="number" placeholder="/100"></div>
+        <div class="form-group"><label class="form-label">Physics (HSC)</label><input class="form-input" id="ns-physics" type="number" placeholder="/100"></div>
+        <div class="form-group"><label class="form-label">Chemistry (HSC)</label><input class="form-input" id="ns-chem" type="number" placeholder="/100"></div>
+        <div class="form-group"><label class="form-label">Cut Off</label><input class="form-input" id="ns-cutoff" type="number" placeholder="/200"></div>
+      </div>
+      <div class="form-group"><label class="form-label">School Name</label><input class="form-input" id="ns-school" placeholder="School name"></div>
+      <div class="form-group"><label class="form-label">Board</label>
+        <select class="form-input" id="ns-board"><option>State Board</option><option>CBSE</option><option>ICSE</option><option>Matric</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Hosteller</label>
+        <select class="form-input" id="ns-hostel"><option value="No">No (Day Scholar)</option><option value="Yes">Yes (Hosteller)</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">College Bus</label>
+        <select class="form-input" id="ns-bus"><option value="No">No</option><option value="Yes">Yes</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Admission Mode</label>
+        <select class="form-input" id="ns-adm"><option>Regular</option><option>Management Quota</option><option>NRI Quota</option><option>Government Quota</option></select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="form-section-title">🏦 Bank Details</div>
+      <div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" id="ns-bank" placeholder="Bank name"></div>
+      <div class="form-group"><label class="form-label">Branch</label><input class="form-input" id="ns-branch" placeholder="Branch name"></div>
+      <div class="form-group"><label class="form-label">IFSC Code</label><input class="form-input" id="ns-ifsc" placeholder="IFSC code"></div>
+    </div>
+    <div class="card">
+      <div class="form-section-title">🔑 Login Credentials</div>
+      <div class="alert alert-amber">Password for the new student to login to MentorMatrix.</div>
+      <div class="form-group"><label class="form-label">Initial Password</label>
+        <div class="pw-wrap"><input class="form-input" id="ns-pass" type="password" placeholder="Set initial password" value="pass123">
+        <button class="pw-toggle" onclick="togglePw('ns-pass',this)" type="button">👁</button></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin:0 0 16px" onclick="saveNewStudent()">✅ Add Student</button>
+  </div>
+</div>
+
+<!-- T: IMPORT -->
+<div class="screen" id="t-import">
+  <div class="topbar"><button class="topbar-btn" onclick="goBack()">←</button><h2>Import Excel</h2></div>
+  <div class="scroll">
+    <div class="alert alert-blue">📌 Upload your ECE student data sheet (.xlsx) — columns are auto-detected and mapped.</div>
+    <div class="upload-zone" onclick="document.getElementById('excel-input').click()">
+      <div class="upload-icon">📂</div>
+      <div class="upload-title">Tap to select Excel file</div>
+      <div class="upload-sub">Supports .xlsx &nbsp;·&nbsp; Auto-maps all columns</div>
+    </div>
+    <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
+    <div id="import-result" style="margin-top:16px"></div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">📋 Expected Columns (auto-detected)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <span class="chip">Name of the Student</span><span class="chip">Roll No</span><span class="chip">EMIS Number</span>
+        <span class="chip">Date of Birth</span><span class="chip">Gender</span><span class="chip">Mobile</span>
+        <span class="chip">Email ID</span><span class="chip">Father's Name</span><span class="chip">Father's Phone Number</span>
+        <span class="chip">Mother's Name</span><span class="chip">Mother's Phone Number</span><span class="chip">Blood Group</span>
+        <span class="chip">Community</span><span class="chip">Caste</span><span class="chip">Aadhar Number</span>
+        <span class="chip">Cut Off</span><span class="chip">HSC Total Mark</span><span class="chip">Annual Family Income</span>
+        <span class="chip">Achievements</span><span class="chip">Hostel</span><span class="chip">College Bus</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- T: ANNOUNCEMENTS -->
+<div class="screen" id="t-announcements">
+  <div class="topbar"><button class="topbar-btn" onclick="goBack()">←</button><h2>Announcements</h2></div>
+  <div class="scroll">
+    <div class="card">
+      <div class="card-title">📣 Post New Announcement</div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="t-ann-title" placeholder="Announcement title"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-input" id="t-ann-cat"><option>Academic</option><option>Event</option><option>Finance</option><option>General</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Message</label><textarea class="form-input" id="t-ann-body" rows="4" placeholder="Write your announcement..."></textarea></div>
+      <button class="btn btn-primary" onclick="postAnnouncement()">Post Announcement</button>
+    </div>
+    <div id="t-announce-list"></div>
+  </div>
+</div>
+
+<!-- T: STUDENT DETAIL -->
+<div class="screen" id="t-student-detail">
+  <div class="topbar"><button class="topbar-btn" onclick="goBack()">←</button><h2 id="t-detail-title">Student</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" id="t-detail-dl-btn" onclick="openDownloadModal('studentDetail')" title="Export">⬇</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="t-student-detail-content"></div>
+  </div>
+</div>
+
+<!-- ===================== HOD SCREENS ===================== -->
+<!-- H: HOME -->
+<div class="screen" id="h-home">
+  <div class="topbar">
+    <div style="flex:1"><div style="font-size:12px;opacity:.75">HOD Dashboard</div><h2 style="font-size:18px">National Engineering College</h2></div>
+    <button class="topbar-btn" onclick="openDownloadModal('hod')" title="Export">⬇</button>
+    <button class="topbar-btn" onclick="goTo('h-announcements')">🔔</button>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num" id="h-total-students">5</div><div class="stat-label">Total Students</div><div class="stat-sub">ECE 2025-26</div></div>
+      <div class="stat-box"><div class="stat-num">1</div><div class="stat-label">Sections</div></div>
+      <div class="stat-box"><div class="stat-num" id="h-avg-att" style="color:var(--green)">—%</div><div class="stat-label">Avg Attendance</div></div>
+      <div class="stat-box"><div class="stat-num" id="h-low-count" style="color:var(--amber)">—</div><div class="stat-label">Below 75%</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Tutor Section Summary</div>
+      <div id="h-tutor-summary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Department Statistics</div>
+      <div id="h-dept-stats"></div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="h-nav">
+    <button class="nav-item active" onclick="goTab('h-home','h-nav',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="nav-item" onclick="goTab('h-students','h-nav',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('h-announcements','h-nav',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Announce</button>
+    <button class="nav-item" onclick="goTab('h-reports','h-nav',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Reports</button>
+    <button class="nav-item" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
+  </div>
+</div>
+
+<!-- H: STUDENTS -->
+<div class="screen" id="h-students">
+  <div class="topbar"><h2>All Students</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="openDownloadModal('studentList')" title="Export">⬇</button>
+    </div>
+  </div>
+  <div class="scroll-nopb" style="padding:12px 16px">
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="h-search" placeholder="Search students..." oninput="filterHODStudents(this.value)">
+    </div>
+    <div id="h-student-list"></div>
+    <div style="height:80px"></div>
+  </div>
+  <div class="bottom-nav" id="h-nav2">
+    <button class="nav-item" onclick="goTab('h-home','h-nav2',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="nav-item active" onclick="goTab('h-students','h-nav2',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('h-announcements','h-nav2',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Announce</button>
+    <button class="nav-item" onclick="goTab('h-reports','h-nav2',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Reports</button>
+    <button class="nav-item" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/></svg>Logout</button>
+  </div>
+</div>
+
+<!-- H: ANNOUNCEMENTS -->
+<div class="screen" id="h-announcements">
+  <div class="topbar"><h2>Announcements</h2></div>
+  <div class="scroll">
+    <div class="card">
+      <div class="card-title">📣 Post Announcement</div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="h-ann-title" placeholder="Announcement title"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-input" id="h-ann-cat"><option>Academic</option><option>Finance</option><option>Event</option><option>Exam</option><option>General</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Audience</label>
+        <select class="form-input" id="h-ann-audience"><option value="all">Everyone</option><option value="student">Students Only</option><option value="tutor">Tutors Only</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Message</label><textarea class="form-input" id="h-ann-body" rows="4" placeholder="Write announcement..."></textarea></div>
+      <button class="btn btn-primary" onclick="postHODAnnouncement()">Post Announcement</button>
+    </div>
+    <div id="h-announce-list"></div>
+  </div>
+  <div class="bottom-nav" id="h-nav3">
+    <button class="nav-item" onclick="goTab('h-home','h-nav3',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="nav-item" onclick="goTab('h-students','h-nav3',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item active" onclick="goTab('h-announcements','h-nav3',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Announce</button>
+    <button class="nav-item" onclick="goTab('h-reports','h-nav3',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Reports</button>
+    <button class="nav-item" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>Logout</button>
+  </div>
+</div>
+
+<!-- H: REPORTS -->
+<div class="screen" id="h-reports">
+  <div class="topbar"><h2>Reports</h2>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="openDownloadModal('hodReports')" title="Export">⬇</button>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="h-reports-content"></div>
+  </div>
+  <div class="bottom-nav" id="h-nav4">
+    <button class="nav-item" onclick="goTab('h-home','h-nav4',0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+    <button class="nav-item" onclick="goTab('h-students','h-nav4',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Students</button>
+    <button class="nav-item" onclick="goTab('h-announcements','h-nav4',2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Announce</button>
+    <button class="nav-item active" onclick="goTab('h-reports','h-nav4',3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Reports</button>
+    <button class="nav-item" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
+  </div>
+</div>
+
+<!-- ===================== PARENT SCREEN ===================== -->
+<div class="screen" id="parent-screen">
+  <div class="topbar" style="background:linear-gradient(90deg,#1e3a5f,#378ADD)">
+    <div style="flex:1">
+      <div style="font-size:12px;opacity:.75">Parent Portal</div>
+      <h2 id="p-parent-name" style="font-size:18px">Parent</h2>
+    </div>
+    <button class="topbar-btn" onclick="openDownloadModal('parent')" title="Download">⬇</button>
+    <button class="topbar-btn" onclick="doLogout()">🚪</button>
+  </div>
+  <div class="scroll">
+    <div style="background:linear-gradient(135deg,#1e3a5f,#378ADD);padding:20px;display:flex;align-items:center;gap:14px;margin:-16px -16px 16px">
+      <div class="list-avatar" style="width:64px;height:64px;border:3px solid rgba(255,255,255,.4);flex-shrink:0;overflow:hidden" id="p-student-avatar">
+        <span style="font-size:24px;font-weight:800;color:#378ADD">?</span>
+      </div>
+      <div>
+        <div style="color:#fff;font-size:17px;font-weight:800" id="p-student-name">—</div>
+        <div style="color:rgba(255,255,255,.75);font-size:13px" id="p-student-roll">Roll No.</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap" id="p-student-badges"></div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num" id="p-att-pct" style="color:var(--green)">—%</div><div class="stat-label">Attendance</div></div>
+      <div class="stat-box"><div class="stat-num" id="p-cgpa">—</div><div class="stat-label">CGPA</div></div>
+      <div class="stat-box"><div class="stat-num" id="p-present" style="color:var(--green)">—</div><div class="stat-label">Present Days</div></div>
+      <div class="stat-box"><div class="stat-num" id="p-absent" style="color:var(--red)">—</div><div class="stat-label">Absent Days</div></div>
+    </div>
+    <div id="p-alerts"></div>
+    <div class="card">
+      <div class="card-title">📅 Attendance This Month</div>
+      <div id="p-cal"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📚 Marks Summary</div>
+      <div id="p-marks"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📢 Announcements</div>
+      <div id="p-announcements"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Achievements</div>
+      <div id="p-achievements"></div>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="list-item" style="padding:14px 16px" onclick="openChangePassword('parent')">
+        <div class="list-avatar" style="background:#dbeafe;color:#1e40af">🔑</div>
+        <div class="list-info"><div class="list-name">Change Password</div></div>
+        <div style="color:var(--muted);font-size:20px">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- EDIT TOGGLE MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">Enable Profile Editing</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div id="edit-toggle-list"></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">🔑 Change Password</div>
+      <button onclick="closePwModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Current Password</label>
+      <div class="pw-wrap"><input class="form-input" id="pw-current" type="password" placeholder="Enter current password">
+      <button class="pw-toggle" onclick="togglePw('pw-current',this)" type="button">👁</button></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">New Password</label>
+      <div class="pw-wrap"><input class="form-input" id="pw-new" type="password" placeholder="Enter new password">
+      <button class="pw-toggle" onclick="togglePw('pw-new',this)" type="button">👁</button></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm New Password</label>
+      <div class="pw-wrap"><input class="form-input" id="pw-confirm" type="password" placeholder="Re-enter new password">
+      <button class="pw-toggle" onclick="togglePw('pw-confirm',this)" type="button">👁</button></div>
+    </div>
+    <div id="pw-error" class="alert alert-red" style="display:none"></div>
+    <button class="btn btn-primary" onclick="doChangePassword()">Update Password</button>
+  </div>
+</div>
+
+<!-- DOWNLOAD MODAL -->
+<div class="modal-overlay" id="download-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">⬇ Export / Download</div>
+      <button onclick="closeDownloadModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div id="download-options"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DEFAULT DATA =====================
+const DEFAULT_STUDENTS=[
+  {roll:'25106001',name:'AADHIRA PRIYA S',gender:'Female',dob:'15/03/2007',mobile:'9384756201',email:'aadhira.s@student.nec.ac.in',religion:'Hindu',community:'BC',caste:'NADAR',bloodGroup:'B+ve',aadhar:'123456789012',father:'SURESH S',fatherMobile:'9384756200',fatherOcc:'Farmer',fatherIncome:180000,mother:'MEENA S',motherMobile:'9384756202',motherQual:'HSC',address:'12, Rose Street, Tirunelveli 627001',district:'TIRUNELVELI',nationality:'Indian',state:'Tamil Nadu',cutoff:190.25,hscTotal:472,mathsHSC:93,physicsHSC:89,chemHSC:87,sslcTotal:452,board:'State Board',school:'Govt. Hr. Sec. School, Tirunelveli',bankName:'Indian Bank',bankBranch:'Tirunelveli',ifsc:'IDIB000T001',bus:'No',hosteller:'Yes',income:180000,commCertNo:'TN-1234567890',incomeCertNo:'INC-123456',scholarship:'BC',admMode:'Regular',emis:'2013292668',cgpa:8.4,firstGrad:'YES'},
+  {roll:'25106002',name:'BHARATH KUMAR R',gender:'Male',dob:'22/07/2006',mobile:'8765432109',email:'bharath.r@student.nec.ac.in',religion:'Hindu',community:'MBC',caste:'THEVAR',bloodGroup:'A+ve',aadhar:'234567890123',father:'RAJKUMAR R',fatherMobile:'8765432108',fatherOcc:'Businessman',fatherIncome:500000,mother:'LAKSHMI R',motherMobile:'8765432110',motherQual:'B.Com',address:'45, MG Road, Madurai 625001',district:'MADURAI',nationality:'Indian',state:'Tamil Nadu',cutoff:185.5,hscTotal:461,mathsHSC:90,physicsHSC:85,chemHSC:80,sslcTotal:440,board:'State Board',school:'Madurai Govt. Boys Hr. Sec.',bankName:'SBI',bankBranch:'Madurai',ifsc:'SBIN0001234',bus:'Yes',hosteller:'No',income:500000,commCertNo:'TN-2345678901',incomeCertNo:'',scholarship:'NIL',admMode:'Regular',emis:'2013292669',cgpa:7.8,firstGrad:'NO'},
+  {roll:'25106003',name:'CHARULATHA M',gender:'Female',dob:'10/01/2007',mobile:'7654321098',email:'charulatha.m@student.nec.ac.in',religion:'Hindu',community:'SC',caste:'PARAIYAR',bloodGroup:'O+ve',aadhar:'345678901234',father:'MURUGAN M',fatherMobile:'7654321097',fatherOcc:'Daily Wages',fatherIncome:90000,mother:'RANI M',motherMobile:'7654321099',motherQual:'SSLC',address:'89, Gandhi Nagar, Salem 636001',district:'SALEM',nationality:'Indian',state:'Tamil Nadu',cutoff:178.75,hscTotal:448,mathsHSC:87,physicsHSC:80,chemHSC:75,sslcTotal:420,board:'State Board',school:'Salem Govt. Girls Hr. Sec.',bankName:'Canara Bank',bankBranch:'Salem',ifsc:'CNRB0001234',bus:'No',hosteller:'Yes',income:90000,commCertNo:'TN-3456789012',incomeCertNo:'INC-234567',scholarship:'SC',admMode:'Government Quota',emis:'2013292670',cgpa:7.2,firstGrad:'YES'},
+  {roll:'25106004',name:'DEVA PRASAD K',gender:'Male',dob:'05/11/2006',mobile:'6543210987',email:'devaprasad.k@student.nec.ac.in',religion:'Hindu',community:'OC',caste:'BRAHMIN',bloodGroup:'AB+ve',aadhar:'456789012345',father:'KRISHNASWAMY K',fatherMobile:'6543210986',fatherOcc:'Software Engineer',fatherIncome:1200000,mother:'SARASWATHI K',motherMobile:'6543210988',motherQual:'M.Sc',address:'23, Nehru Street, Chennai 600001',district:'CHENNAI',nationality:'Indian',state:'Tamil Nadu',cutoff:195.5,hscTotal:490,mathsHSC:98,physicsHSC:96,chemHSC:95,sslcTotal:480,board:'CBSE',school:'DAV Public School, Chennai',bankName:'HDFC Bank',bankBranch:'Chennai',ifsc:'HDFC0001234',bus:'No',hosteller:'No',income:1200000,commCertNo:'',incomeCertNo:'',scholarship:'NIL',admMode:'Management Quota',emis:'2013292671',cgpa:9.2,firstGrad:'NO'},
+  {roll:'25106005',name:'HEMANTH KUMAR P',gender:'Male',dob:'08/09/2007',mobile:'8667368917',email:'kanthapushpammallika@gmail.com',religion:'Hindu',community:'BC',caste:'REDDY(KANJAM)',bloodGroup:'O+ve',aadhar:'344939330930',father:'POTHI REDDY K',fatherMobile:'9442284381',fatherOcc:'TNEB, Kovilpatti',fatherIncome:800000,mother:'KANTHA PUSHPAM P',motherMobile:'9489190357',motherQual:'SSLC',address:'194L14/4 Thendral Nagar, Kovilpatti, Thoothukudi 628502',district:'THOOTHUKUDI',nationality:'Indian',state:'Tamil Nadu',cutoff:147.5,hscTotal:414,mathsHSC:81,physicsHSC:67,chemHSC:66,sslcTotal:388,board:'State Board',school:'Kamaraj Matric Hr.Sec.School, Kovilpatti',bankName:'Indian Overseas Bank',bankBranch:'K.R. Nagar',ifsc:'IOBA0001749',bus:'Yes',hosteller:'No',income:800000,commCertNo:'TN-5202207023956',incomeCertNo:'',scholarship:'NIL',admMode:'Management Quota',emis:'2013292672',cgpa:7.5,firstGrad:'NO'},
+];
+
+const SUBJECTS=['Engineering Mathematics I','Engineering Physics','Circuit Theory','Programming in C','Engineering Chemistry'];
+const DEFAULT_MARKS={
+  '25106001':{'Engineering Mathematics I':{ia1:18,ia2:19,assignment:9,midterm:38,endsem:null},'Engineering Physics':{ia1:15,ia2:17,assignment:8,midterm:32,endsem:null},'Circuit Theory':{ia1:19,ia2:20,assignment:10,midterm:45,endsem:null},'Programming in C':{ia1:16,ia2:18,assignment:9,midterm:40,endsem:null},'Engineering Chemistry':{ia1:14,ia2:16,assignment:8,midterm:30,endsem:null}},
+  '25106004':{'Engineering Mathematics I':{ia1:20,ia2:20,assignment:10,midterm:48,endsem:null},'Engineering Physics':{ia1:19,ia2:20,assignment:10,midterm:46,endsem:null},'Circuit Theory':{ia1:20,ia2:20,assignment:10,midterm:49,endsem:null},'Programming in C':{ia1:18,ia2:20,assignment:10,midterm:45,endsem:null},'Engineering Chemistry':{ia1:17,ia2:19,assignment:9,midterm:42,endsem:null}},
+};
+const DEFAULT_ATTENDANCE_2025_11={
+  '25106001':{1:'P',2:'P',3:'A',4:'P',5:'H',6:'P',7:'P',8:'L',9:'P',10:'P',11:'P',12:'A',13:'P',14:'P',15:'H',16:'P',17:'P',18:'P',19:'P',20:'P',21:'A',22:'P',23:'P',24:'P',25:'P',26:'P',27:'P',28:'P',29:'P',30:'P'},
+  '25106002':{1:'P',2:'P',3:'P',4:'P',5:'H',6:'P',7:'P',8:'P',9:'P',10:'P',11:'P',12:'P',13:'P',14:'P',15:'H',16:'P',17:'P',18:'P',19:'P',20:'P',21:'P',22:'P',23:'P',24:'P',25:'P',26:'P',27:'P',28:'P',29:'P',30:'P'},
+  '25106003':{1:'P',2:'A',3:'A',4:'P',5:'H',6:'P',7:'A',8:'P',9:'P',10:'P',11:'A',12:'A',13:'P',14:'P',15:'H',16:'P',17:'P',18:'P',19:'A',20:'P',21:'P',22:'P',23:'P',24:'P',25:'P',26:'P',27:'P',28:'P',29:'P',30:'P'},
+  '25106004':{1:'P',2:'P',3:'P',4:'P',5:'H',6:'P',7:'P',8:'P',9:'P',10:'P',11:'P',12:'P',13:'P',14:'P',15:'H',16:'P',17:'P',18:'P',19:'P',20:'P',21:'P',22:'P',23:'P',24:'P',25:'P',26:'P',27:'P',28:'P',29:'P',30:'P'},
+  '25106005':{1:'P',2:'P',3:'A',4:'P',5:'H',6:'P',7:'P',8:'P',9:'A',10:'P',11:'P',12:'P',13:'P',14:'P',15:'H',16:'P',17:'P',18:'P',19:'P',20:'P',21:'P',22:'P',23:'A',24:'P',25:'P',26:'P',27:'P',28:'P',29:'P',30:'P'},
+};
+const DEFAULT_ANNOUNCEMENTS=[
+  {id:1,title:'Internal Assessment — IA1 Schedule',body:'IA1 examinations will be conducted from Nov 10–15. Timetable is shared via college mail. Prepare all subjects diligently.',by:'HOD - ECE',date:'Nov 2, 2025',type:'Academic',pinned:true,role:'all'},
+  {id:2,title:'Scholarship Application Deadline',body:'Students eligible for BC/MBC/SC scholarships must submit documents to the scholarship cell by Nov 20. Income certificate mandatory.',by:'Admin Office',date:'Nov 5, 2025',type:'Finance',pinned:false,role:'all'},
+  {id:3,title:'National Hackathon 2025 — Registrations Open',body:'Register your team for the National Hackathon 2025. Last date: Nov 25. Prize pool ₹1,00,000. Contact T&P cell for details.',by:'Training & Placement',date:'Nov 6, 2025',type:'Event',pinned:false,role:'all'},
+  {id:4,title:'Library Books Return — Nov 30',body:'All library books must be returned by Nov 30 to avoid fine deduction. Library timings: 8 AM – 8 PM on working days.',by:'Library',date:'Nov 7, 2025',type:'General',pinned:false,role:'all'},
+];
+const DEFAULT_SUBJECT_ATT={
+  '25106001':{'Engineering Mathematics I':{total:40,present:36},'Engineering Physics':{total:38,present:30},'Circuit Theory':{total:42,present:40},'Programming in C':{total:36,present:32},'Engineering Chemistry':{total:35,present:26}},
+};
+const USERS={
+  '25106001':{pass:'pass123',role:'student',roll:'25106001'},
+  '25106002':{pass:'pass123',role:'student',roll:'25106002'},
+  '25106003':{pass:'pass123',role:'student',roll:'25106003'},
+  '25106004':{pass:'pass123',role:'student',roll:'25106004'},
+  '25106005':{pass:'pass123',role:'student',roll:'25106005'},
+  'tutor01':{pass:'pass123',role:'tutor',name:'Dr. R. Meenakshi'},
+  'hod01':{pass:'pass123',role:'hod',name:'Prof. P. Sundaram'},
+  // Parent logins: parent + roll number
+  'parent25106001':{pass:'pass123',role:'parent',roll:'25106001'},
+  'parent25106002':{pass:'pass123',role:'parent',roll:'25106002'},
+  'parent25106003':{pass:'pass123',role:'parent',roll:'25106003'},
+  'parent25106004':{pass:'pass123',role:'parent',roll:'25106004'},
+  'parent25106005':{pass:'pass123',role:'parent',roll:'25106005'},
+};
+
+// ===================== STATE =====================
+let DB={};
+let currentUser=null;
+let screenHistory=[];
+let calMonth={year:2025,month:11};
+let downloadContext='student';
+let currentDetailRoll=null;
+let pwChangeContext='student';
+
+function loadDB(){
+  try{DB=JSON.parse(localStorage.getItem('mentormatrix_v2_db')||'null')||initDB();}
+  catch(e){DB=initDB();}
+}
+function initDB(){
+  const db={
+    students:[...DEFAULT_STUDENTS],
+    attendance:JSON.parse(JSON.stringify(DEFAULT_ATTENDANCE_2025_11)),
+    marks:JSON.parse(JSON.stringify(DEFAULT_MARKS)),
+    announcements:JSON.parse(JSON.stringify(DEFAULT_ANNOUNCEMENTS)),
+    subjectAtt:JSON.parse(JSON.stringify(DEFAULT_SUBJECT_ATT)),
+    scholarships:{},
+    achievements:{'25106001':[{title:'District Level - Carrom',cat:'Sports',level:'District Level',year:2024,verified:true}]},
+    photos:{},
+    tutorPhoto:'',
+    editEnabled:{},
+    msgLog:[],
+    users:JSON.parse(JSON.stringify(USERS)),
+  };
+  saveDB(db);return db;
+}
+function saveDB(d){if(d)DB=d;try{localStorage.setItem('mentormatrix_v2_db',JSON.stringify(DB));}catch(e){}}
+
+// ===================== AUTH =====================
+let loginRole='student';
+function setRole(r){
+  loginRole=r;
+  document.querySelectorAll('.role-btn').forEach((b,i)=>b.classList.toggle('active',['student','tutor','hod','parent'][i]===r));
+  const ph={student:'Roll No e.g. 25106001',tutor:'tutor01',hod:'hod01',parent:'parent25106001'};
+  document.getElementById('login-user').placeholder=ph[r];
+}
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value.trim();
+  const usr=DB.users[u];
+  if(!usr||usr.pass!==p){toast('Invalid credentials');return;}
+  if(usr.role!==loginRole){toast('Wrong role selected');return;}
+  currentUser={...usr,username:u};
+  if(usr.role==='student'){showStudentApp(usr.roll);}
+  else if(usr.role==='tutor'){showTutorApp();}
+  else if(usr.role==='parent'){showParentApp(usr.roll);}
+  else{showHODApp();}
+}
+function doLogout(){
+  currentUser=null;screenHistory=[];
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  show('login-screen');
+}
+
+// ===================== NAVIGATION =====================
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));}
+function goTo(id){screenHistory.push(id);show(id);renderScreen(id);}
+function goTab(id,navId,idx){
+  show(id);renderScreen(id);
+  document.querySelectorAll('#'+navId+' .nav-item').forEach((n,i)=>n.classList.toggle('active',i===idx));
+}
+function goBack(){
+  if(screenHistory.length>1){
+    screenHistory.pop();
+    const prev=screenHistory[screenHistory.length-1];
+    show(prev);renderScreen(prev);
+  }
+}
+window.addEventListener('popstate',()=>{goBack();});
+window.history.pushState({},'','');
+
+// ===================== HELPERS =====================
+function getStudent(roll){return DB.students.find(s=>s.roll===roll)||DB.students[0];}
+function getAttStats(roll,year,month){
+  const key=`${year}_${month}`;
+  const dayAtt=(DB.attendance[key]&&DB.attendance[key][roll])||DB.attendance[roll]||{};
+  const days=Object.values(dayAtt);
+  const total=days.filter(d=>d!=='H').length;
+  const present=days.filter(d=>d==='P'||d==='OD').length;
+  const absent=days.filter(d=>d==='A').length;
+  const pct=total>0?Math.round(present/total*100):0;
+  return{total,present,absent,pct};
+}
+function todayKey(){const d=new Date();return`${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`;}
+function todayDateStr(){return new Date().toISOString().split('T')[0];}
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  if(!inp)return;
+  inp.type=inp.type==='password'?'text':'password';
+  btn.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+// ===================== STUDENT APP =====================
+function showStudentApp(roll){
+  const s=getStudent(roll);
+  document.getElementById('s-home-name').textContent=s.name.split(' ')[0];
+  renderStudentHome(roll);renderStudentAttendance(roll);renderStudentMarks(roll);renderStudentProfile(roll);
+  goTo('s-home');screenHistory=['s-home'];
+}
+function renderStudentHome(roll){
+  const s=getStudent(roll);
+  const stats=getAttStats(roll,2025,11);
+  document.getElementById('s-att-pct').textContent=stats.pct+'%';
+  document.getElementById('s-present-days').textContent=stats.present;
+  document.getElementById('s-absent-days').textContent=stats.absent;
+  const stEl=document.getElementById('s-att-status');
+  if(stats.pct>=85)stEl.innerHTML='<span style="color:var(--green);font-weight:700">✓ Excellent</span>';
+  else if(stats.pct>=75)stEl.innerHTML='<span style="color:var(--amber);font-weight:700">⚠ Adequate</span>';
+  else stEl.innerHTML='<span style="color:var(--red);font-weight:700">✗ Low</span>';
+  const alertEl=document.getElementById('s-home-alert');
+  if(stats.pct<75)alertEl.innerHTML=`<div class="alert alert-red">⚠️ Your attendance is ${stats.pct}% — below 75%. You may be detained from exams!</div>`;
+  else alertEl.innerHTML='';
+  const dayAtt=(DB.attendance['2025_11']&&DB.attendance['2025_11'][roll])||DB.attendance[roll]||{};
+  document.getElementById('s-mini-cal').innerHTML='<div class="att-grid">'+
+    ['S','M','T','W','T','F','S'].map(d=>`<div class="att-cell att-header">${d}</div>`).join('')+
+    Array.from({length:6},()=>`<div class="att-cell att-future"></div>`).join('')+
+    Array.from({length:30},(_,i)=>{const d=i+1;const st=dayAtt[d]||'future';return`<div class="att-cell att-${st}"><span class="day-num">${d}</span></div>`;}).join('')+
+  '</div>';
+  const mk=DB.marks[roll]||{};
+  const mHtml=SUBJECTS.slice(0,3).map(sub=>{
+    const m=mk[sub]||{};
+    const tot=(m.ia1||0)+(m.ia2||0)+(m.assignment||0);
+    const g=tot>=45?'A':tot>=35?'B':tot>=25?'C':'D';
+    return`<div class="list-item"><div class="grade-circle grade-${g}" style="width:36px;height:36px;font-size:12px;margin-right:12px">${g}</div><div class="list-info"><div class="list-name" style="font-size:13px">${sub}</div><div class="list-sub">IA Total: ${tot}/50</div></div></div>`;
+  }).join('');
+  document.getElementById('s-home-marks').innerHTML=mHtml||'<p style="color:var(--muted);font-size:13px">No marks entered yet</p>';
+  const ann=DB.announcements[0];
+  document.getElementById('s-home-announce').innerHTML=ann?`<h4 style="font-size:14px;font-weight:700;margin-bottom:6px">${ann.title}</h4><p style="font-size:13px;color:var(--muted)">${ann.body.substring(0,100)}...</p><div style="margin-top:6px"><span class="badge badge-${ann.type==='Academic'?'blue':ann.type==='Finance'?'amber':'green'}">${ann.type}</span></div>`:'';}
+
+function renderStudentAttendance(roll){
+  const{year,month}=calMonth;
+  const key=`${year}_${month}`;
+  const dayAtt=(DB.attendance[key]&&DB.attendance[key][roll])||DB.attendance[roll]||{};
+  const days=Object.values(dayAtt);
+  const total=days.filter(d=>d!=='H').length;
+  const present=days.filter(d=>d==='P'||d==='OD').length;
+  const absent=days.filter(d=>d==='A').length;
+  const pct=total>0?Math.round(present/total*100):0;
+  const needed=Math.max(0,Math.ceil((0.75*total-present)/(1-0.75)));
+  document.getElementById('sa-present').textContent=present;
+  document.getElementById('sa-absent').textContent=absent;
+  document.getElementById('sa-pct').textContent=pct+'%';
+  document.getElementById('sa-needed').textContent=pct>=75?'None':needed;
+  const warn=document.getElementById('sa-warning');
+  if(pct<75)warn.innerHTML=`<div class="alert alert-red">⚠️ Attendance ${pct}% is below 75%. Attend ${needed} more days.</div>`;
+  else warn.innerHTML='';
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('sa-month-label').textContent=`${months[month-1]} ${year}`;
+  const daysInMonth=new Date(year,month,0).getDate();
+  const firstDay=new Date(year,month-1,1).getDay();
+  document.getElementById('sa-cal').innerHTML='<div class="att-grid">'+
+    ['S','M','T','W','T','F','S'].map(d=>`<div class="att-cell att-header">${d}</div>`).join('')+
+    Array.from({length:firstDay},()=>`<div class="att-cell att-future"></div>`).join('')+
+    Array.from({length:daysInMonth},(_,i)=>{const d=i+1;const st=dayAtt[d]||'future';return`<div class="att-cell att-${st}"><span class="day-num">${d}</span><span style="font-size:9px">${st!=='future'?st:''}</span></div>`;}).join('')+
+  '</div>';
+  const sa=DB.subjectAtt[roll]||DEFAULT_SUBJECT_ATT['25106001'];
+  document.getElementById('sa-subjects').innerHTML=SUBJECTS.map(sub=>{
+    const d=sa[sub]||{total:40,present:36};
+    const p=Math.round(d.present/d.total*100);
+    const col=p>=85?'prog-green':p>=75?'prog-amber':'prog-red';
+    const bc=p>=85?'badge-green':p>=75?'badge-amber':'badge-red';
+    return`<div class="sub-att-row"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${sub}</div><div class="progress-bar"><div class="progress-fill ${col}" style="width:${p}%"></div></div><div style="font-size:11px;color:var(--muted);margin-top:3px">${d.present}/${d.total} classes</div></div><span class="badge ${bc}" style="margin-left:12px">${p}%</span></div>`;
+  }).join('');
+}
+function changeMonth(dir){
+  calMonth.month+=dir;
+  if(calMonth.month>12){calMonth.month=1;calMonth.year++;}
+  if(calMonth.month<1){calMonth.month=12;calMonth.year--;}
+  if(currentUser){
+    if(currentUser.role==='student')renderStudentAttendance(currentUser.roll);
+    else if(currentUser.role==='parent')renderParentApp(currentUser.roll);
+  }
+}
+
+function renderStudentMarks(roll){
+  const mk=DB.marks[roll]||{};
+  let html='';
+  SUBJECTS.forEach(sub=>{
+    const m=mk[sub]||{};
+    const ia1=m.ia1||0,ia2=m.ia2||0,asgn=m.assignment||0,mid=m.midterm||0;
+    const total50=ia1+ia2+asgn;
+    const g=total50>=45?'A':total50>=35?'B':total50>=25?'C':'D';
+    html+=`<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="grade-circle grade-${g}">${g}</div>
+        <div><div style="font-size:14px;font-weight:800">${sub}</div><div style="font-size:12px;color:var(--muted)">IA Total: ${total50}/50</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        ${[['IA 1',ia1,20],['IA 2',ia2,20],['Assgn',asgn,10],['Mid',mid,50]].map(([lbl,val,mx])=>
+          `<div style="background:#f8f9fa;border-radius:10px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--dark)">${val||'—'}</div><div style="font-size:11px;color:var(--muted)">${lbl}/${mx}</div></div>`
+        ).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('s-marks-content').innerHTML=html||'<div class="empty-state"><span class="emoji">📝</span><p>No marks entered yet</p></div>';
+}
+
+let currentProfileTab=0;
+function showProfileTab(idx){
+  currentProfileTab=idx;
+  document.querySelectorAll('.profile-tab').forEach((t,i)=>t.style.display=i===idx?'block':'none');
+  document.querySelectorAll('#s-profile .segment .seg-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+}
+function renderStudentProfile(roll){
+  const s=getStudent(roll);
+  const editable=DB.editEnabled&&DB.editEnabled[roll];
+  document.getElementById('s-profile-name').textContent=s.name;
+  document.getElementById('s-profile-roll').textContent=`Roll: ${s.roll} · ECE · ${s.admMode}`;
+  document.getElementById('s-profile-badges').innerHTML=
+    `<span class="profile-badge">${s.bloodGroup}</span><span class="profile-badge">${s.community}</span><span class="profile-badge">${s.gender}</span>${s.hosteller==='Yes'?'<span class="profile-badge">Hosteller</span>':''}${s.bus==='Yes'?'<span class="profile-badge">Bus</span>':''}`;
+  const photoCircle=document.getElementById('s-photo-circle');
+  const photo=DB.photos&&DB.photos[roll];
+  photoCircle.innerHTML=photo?`<img src="${photo}" alt="Photo">`:`<div style="text-align:center;padding:10px"><div style="font-size:36px">👤</div><p style="font-size:10px;color:var(--dark);margin-top:2px">Tap to add</p></div>`;
+  const ro=editable?'':'readonly';
+  const roStyle=editable?'':'background:#f9fafb;color:var(--muted)';
+  document.getElementById('profile-tab-0').innerHTML=`
+    ${!editable?'<div class="alert alert-amber">🔒 Editing locked. Contact your tutor to enable editing.</div>':'<div class="alert alert-green">✓ Editing enabled by your tutor.</div>'}
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" value="${s.name}" ${ro} style="${roStyle}" onchange="updateField('${roll}','name',this.value)"></div>
+    <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" value="${s.dob}" ${ro} style="${roStyle}" onchange="updateField('${roll}','dob',this.value)"></div>
+    <div class="form-group"><label class="form-label">Mobile Number</label><input class="form-input" type="tel" value="${s.mobile}" ${ro} style="${roStyle}" onchange="updateField('${roll}','mobile',this.value)"></div>
+    <div class="form-group"><label class="form-label">Email ID</label><input class="form-input" type="email" value="${s.email}" ${ro} style="${roStyle}" onchange="updateField('${roll}','email',this.value)"></div>
+    <div class="form-group"><label class="form-label">Religion</label><input class="form-input" value="${s.religion}" ${ro} style="${roStyle}" onchange="updateField('${roll}','religion',this.value)"></div>
+    <div class="form-group"><label class="form-label">Community</label><input class="form-input" value="${s.community}" ${ro} style="${roStyle}" onchange="updateField('${roll}','community',this.value)"></div>
+    <div class="form-group"><label class="form-label">Blood Group</label><input class="form-input" value="${s.bloodGroup}" ${ro} style="${roStyle}" onchange="updateField('${roll}','bloodGroup',this.value)"></div>
+    <div class="form-group"><label class="form-label">Aadhar Number</label><input class="form-input" value="${s.aadhar}" ${ro} style="${roStyle}" onchange="updateField('${roll}','aadhar',this.value)"></div>
+    <div class="form-group"><label class="form-label">Address</label><textarea class="form-input" rows="3" ${ro} style="${roStyle}" onchange="updateField('${roll}','address',this.value)">${s.address}</textarea></div>
+    ${editable?`<button class="btn btn-primary" onclick="saveProfile('${roll}')">💾 Save Profile</button>`:''}
+  `;
+  document.getElementById('profile-tab-1').innerHTML=`
+    <div class="section-divider">Father's Details</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="photo-circle" style="width:72px;height:72px;border-width:2px" onclick="uploadParentPhoto('${roll}','father')">
+        ${DB.photos&&DB.photos[roll+'_father']?`<img src="${DB.photos[roll+'_father']}" alt="Father">`:`<div style="font-size:28px;text-align:center">👨<br><span style="font-size:10px;color:var(--dark)">Add</span></div>`}
+      </div>
+      <div><div style="font-weight:800;font-size:15px">${s.father}</div><div style="font-size:13px;color:var(--muted)">${s.fatherOcc}</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Father's Mobile</label><input class="form-input" type="tel" value="${s.fatherMobile}" ${ro} style="${roStyle}" onchange="updateField('${roll}','fatherMobile',this.value)"></div>
+    <div class="form-group"><label class="form-label">Father's Annual Income</label><input class="form-input" value="₹${(s.fatherIncome||0).toLocaleString('en-IN')}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+    <div class="section-divider">Mother's Details</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="photo-circle" style="width:72px;height:72px;border-width:2px" onclick="uploadParentPhoto('${roll}','mother')">
+        ${DB.photos&&DB.photos[roll+'_mother']?`<img src="${DB.photos[roll+'_mother']}" alt="Mother">`:`<div style="font-size:28px;text-align:center">👩<br><span style="font-size:10px;color:var(--dark)">Add</span></div>`}
+      </div>
+      <div><div style="font-weight:800;font-size:15px">${s.mother}</div><div style="font-size:13px;color:var(--muted)">${s.motherQual}</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Mother's Mobile</label><input class="form-input" type="tel" value="${s.motherMobile}" ${ro} style="${roStyle}" onchange="updateField('${roll}','motherMobile',this.value)"></div>
+    <div class="form-group"><label class="form-label">Annual Family Income</label><input class="form-input" value="₹${(s.income||0).toLocaleString('en-IN')}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+  `;
+  document.getElementById('profile-tab-2').innerHTML=`
+    <div class="form-group"><label class="form-label">Board</label><input class="form-input" value="${s.board}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+    <div class="form-group"><label class="form-label">School</label><input class="form-input" value="${s.school}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Maths (HSC)</label><input class="form-input" value="${s.mathsHSC}/100" readonly style="background:#f9fafb;color:var(--muted)"></div>
+      <div class="form-group"><label class="form-label">Physics (HSC)</label><input class="form-input" value="${s.physicsHSC}/100" readonly style="background:#f9fafb;color:var(--muted)"></div>
+      <div class="form-group"><label class="form-label">Chemistry (HSC)</label><input class="form-input" value="${s.chemHSC}/100" readonly style="background:#f9fafb;color:var(--muted)"></div>
+      <div class="form-group"><label class="form-label">Cut Off</label><input class="form-input" value="${s.cutoff}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+      <div class="form-group"><label class="form-label">HSC Total</label><input class="form-input" value="${s.hscTotal}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+      <div class="form-group"><label class="form-label">SSLC Total</label><input class="form-input" value="${s.sslcTotal}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Admission Mode</label><input class="form-input" value="${s.admMode}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+    <div class="form-group"><label class="form-label">EMIS Number</label><input class="form-input" value="${s.emis}" readonly style="background:#f9fafb;color:var(--muted)"></div>
+  `;
+  document.getElementById('profile-tab-3').innerHTML=`
+    <div class="alert alert-amber">⚠️ Bank details are sensitive. Update only if needed.</div>
+    <div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" value="${s.bankName}" ${ro} style="${roStyle}" onchange="updateField('${roll}','bankName',this.value)"></div>
+    <div class="form-group"><label class="form-label">Branch</label><input class="form-input" value="${s.bankBranch}" ${ro} style="${roStyle}" onchange="updateField('${roll}','bankBranch',this.value)"></div>
+    <div class="form-group"><label class="form-label">IFSC Code</label><input class="form-input" value="${s.ifsc}" ${ro} style="${roStyle}" onchange="updateField('${roll}','ifsc',this.value)"></div>
+    <div class="form-group"><label class="form-label">Community Certificate No.</label><input class="form-input" value="${s.commCertNo||''}" ${ro} style="${roStyle}" onchange="updateField('${roll}','commCertNo',this.value)"></div>
+    <div class="form-group"><label class="form-label">Income Certificate No.</label><input class="form-input" value="${s.incomeCertNo||''}" ${ro} style="${roStyle}" onchange="updateField('${roll}','incomeCertNo',this.value)"></div>
+    ${editable?`<button class="btn btn-primary" onclick="saveProfile('${roll}')">💾 Save</button>`:''}
+  `;
+}
+function updateField(roll,field,val){
+  const idx=DB.students.findIndex(s=>s.roll===roll);
+  if(idx>=0){DB.students[idx][field]=val;saveDB();}
+}
+function saveProfile(roll){toast('✓ Profile saved!');renderStudentProfile(roll);}
+
+let photoTargetRoll='',photoTargetType='student';
+function uploadStudentPhoto(){
+  photoTargetRoll=currentUser.roll;photoTargetType='student';
+  document.getElementById('photo-input').click();
+}
+function uploadParentPhoto(roll,type){
+  photoTargetRoll=roll;photoTargetType=type;
+  document.getElementById('photo-input').click();
+}
+function handlePhotoUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    if(!DB.photos)DB.photos={};
+    const key=photoTargetType==='student'?photoTargetRoll:photoTargetRoll+'_'+photoTargetType;
+    DB.photos[key]=e.target.result;saveDB();
+    if(currentUser&&currentUser.role==='student')renderStudentProfile(photoTargetRoll);
+    else if(currentUser&&currentUser.role==='tutor'){renderTutorStudentList();if(currentDetailRoll)viewStudentDetail(currentDetailRoll);}
+    toast('✓ Photo saved!');
+  };
+  reader.readAsDataURL(file);input.value='';
+}
+function uploadTutorPhoto(){
+  document.getElementById('tutor-photo-input').click();
+}
+function handleTutorPhotoUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    DB.tutorPhoto=e.target.result;saveDB();
+    const el=document.getElementById('t-home-avatar');
+    if(el)el.innerHTML=`<img src="${e.target.result}" alt="Tutor" style="width:100%;height:100%;object-fit:cover">`;
+    toast('✓ Tutor photo saved!');
+  };
+  reader.readAsDataURL(file);input.value='';
+}
+
+// Scholarships
+function renderScholarships(roll){
+  const s=getStudent(roll);
+  const schs=DB.scholarships[roll]||[];
+  const defaults=[{name:'Community Scholarship ('+s.community+')',certNo:s.commCertNo||'',status:'Applied',amt:5000},{name:'Income Certificate',certNo:s.incomeCertNo||'',status:s.incomeCertNo?'Verified':'Pending',amt:0}];
+  const allSchs=[...defaults,...schs];
+  document.getElementById('s-scholarship-content').innerHTML=`<div class="card">`+allSchs.map(sc=>`
+    <div class="list-item">
+      <div class="list-info"><div class="list-name" style="font-size:14px">${sc.name}</div><div class="list-sub">Cert: ${sc.certNo||'—'}</div></div>
+      <div class="list-right"><span class="badge badge-${sc.status==='Applied'||sc.status==='Verified'?'green':'amber'}">${sc.status}</span>${sc.amt?`<div style="font-size:13px;font-weight:700;margin-top:4px">₹${sc.amt.toLocaleString('en-IN')}</div>`:''}</div>
+    </div>`).join('')+`</div>`;
+}
+function addScholarship(){
+  const roll=currentUser.roll;
+  const name=document.getElementById('sch-name').value.trim();
+  if(!name){toast('Enter scholarship name');return;}
+  if(!DB.scholarships[roll])DB.scholarships[roll]=[];
+  DB.scholarships[roll].push({name,certNo:document.getElementById('sch-cert').value.trim(),amt:Number(document.getElementById('sch-amt').value)||0,status:'Applied'});
+  saveDB();['sch-name','sch-cert','sch-amt'].forEach(id=>document.getElementById(id).value='');
+  renderScholarships(roll);toast('✓ Application submitted!');
+}
+
+// Achievements
+function renderAchievements(roll){
+  const achs=DB.achievements[roll]||[];
+  const emojis={Sports:'🥇',Technical:'💡',Cultural:'🎭',Academic:'📚',Community:'🌱',Other:'🏅'};
+  document.getElementById('s-achievements-content').innerHTML=achs.length?`<div class="card">`+achs.map(a=>`
+    <div class="list-item">
+      <div class="list-avatar" style="background:#ede9fe;color:#5b21b6;font-size:20px">${emojis[a.cat]||'🏅'}</div>
+      <div class="list-info"><div class="list-name">${a.title}</div><div class="list-sub">${a.cat} · ${a.level} · ${a.year}</div></div>
+      <span class="badge badge-${a.verified?'green':'amber'}">${a.verified?'Verified':'Pending'}</span>
+    </div>`).join('')+`</div>`:'<div class="empty-state"><span class="emoji">🏆</span><p>No achievements added</p></div>';
+}
+function addAchievement(){
+  const roll=currentUser.roll;
+  const title=document.getElementById('ach-title').value.trim();
+  if(!title){toast('Enter achievement title');return;}
+  if(!DB.achievements[roll])DB.achievements[roll]=[];
+  DB.achievements[roll].push({title,cat:document.getElementById('ach-cat').value,level:document.getElementById('ach-level').value,year:document.getElementById('ach-year').value||new Date().getFullYear(),verified:false});
+  saveDB();document.getElementById('ach-title').value='';document.getElementById('ach-year').value='';
+  renderAchievements(roll);toast('✓ Achievement added! Awaiting tutor verification.');
+}
+
+// Announcements
+function renderAnnouncements(filter){
+  const anns=DB.announcements;
+  const typeCols={Academic:'blue',Finance:'amber',Event:'green',Exam:'purple',General:'gray'};
+  const filtered=filter&&filter!=='all'?anns.filter(a=>a.type===filter):anns;
+  document.getElementById('announce-list').innerHTML=filtered.map(a=>`
+    <div class="announce-item">
+      ${a.pinned?'<div style="font-size:12px;color:var(--amber);font-weight:700;margin-bottom:6px">📌 Pinned</div>':''}
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <h4>${a.title}</h4>
+        <span class="badge badge-${typeCols[a.type]||'gray'}" style="flex-shrink:0">${a.type}</span>
+      </div>
+      <p>${a.body}</p>
+      <div class="announce-meta"><span style="font-size:12px;color:var(--muted)">📢 ${a.by}</span><span style="font-size:12px;color:var(--muted)">🗓 ${a.date}</span></div>
+    </div>`).join('')||'<div class="empty-state"><span class="emoji">📢</span><p>No announcements</p></div>';
+}
+function filterAnnounce(type,btn){
+  document.querySelectorAll('#s-announcements .segment .seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAnnouncements(type);
+}
+
+// ===================== PARENT APP =====================
+function showParentApp(roll){
+  currentUser.roll=roll;
+  renderParentApp(roll);
+  goTo('parent-screen');screenHistory=['parent-screen'];
+}
+function renderParentApp(roll){
+  const s=getStudent(roll);
+  const stats=getAttStats(roll,2025,11);
+  // Header
+  document.getElementById('p-parent-name').textContent=s.father+' / '+s.mother;
+  document.getElementById('p-student-name').textContent=s.name;
+  document.getElementById('p-student-roll').textContent=`Roll: ${s.roll} · ECE`;
+  const photo=DB.photos&&DB.photos[roll];
+  document.getElementById('p-student-avatar').innerHTML=photo?`<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:24px;font-weight:800;color:#378ADD">${s.name.charAt(0)}</span>`;
+  document.getElementById('p-student-badges').innerHTML=
+    `<span class="badge badge-${stats.pct>=75?'green':'red'}" style="background:rgba(255,255,255,.2);color:#fff">${stats.pct}% Att</span>
+     <span class="badge" style="background:rgba(255,255,255,.2);color:#fff">${s.community}</span>`;
+  // Stats
+  document.getElementById('p-att-pct').textContent=stats.pct+'%';
+  document.getElementById('p-att-pct').style.color=stats.pct>=75?'var(--green)':'var(--red)';
+  document.getElementById('p-cgpa').textContent=s.cgpa||'—';
+  document.getElementById('p-present').textContent=stats.present;
+  document.getElementById('p-absent').textContent=stats.absent;
+  // Alerts
+  const alertEl=document.getElementById('p-alerts');
+  if(stats.pct<75)alertEl.innerHTML=`<div class="alert alert-red">⚠️ ${s.name.split(' ')[0]}'s attendance is ${stats.pct}% — below 75%! Please ensure regular attendance.</div>`;
+  else alertEl.innerHTML='';
+  // Calendar
+  const{year,month}=calMonth;
+  const key=`${year}_${month}`;
+  const dayAtt=(DB.attendance[key]&&DB.attendance[key][roll])||DB.attendance[roll]||{};
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const daysInMonth=new Date(year,month,0).getDate();
+  const firstDay=new Date(year,month-1,1).getDay();
+  document.getElementById('p-cal').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button class="topbar-btn" style="background:var(--light);color:var(--dark)" onclick="changeMonth(-1)">‹</button>
+      <div style="font-size:14px;font-weight:800">${months[month-1]} ${year}</div>
+      <button class="topbar-btn" style="background:var(--light);color:var(--dark)" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="att-grid">`+
+    ['S','M','T','W','T','F','S'].map(d=>`<div class="att-cell att-header">${d}</div>`).join('')+
+    Array.from({length:firstDay},()=>`<div class="att-cell att-future"></div>`).join('')+
+    Array.from({length:daysInMonth},(_,i)=>{const d=i+1;const st=dayAtt[d]||'future';return`<div class="att-cell att-${st}"><span class="day-num">${d}</span><span style="font-size:9px">${st!=='future'?st:''}</span></div>`;}).join('')+
+    '</div>';
+  // Marks
+  const mk=DB.marks[roll]||{};
+  document.getElementById('p-marks').innerHTML=SUBJECTS.map(sub=>{
+    const m=mk[sub]||{};
+    const tot=(m.ia1||0)+(m.ia2||0)+(m.assignment||0);
+    const g=tot>=45?'A':tot>=35?'B':tot>=25?'C':'D';
+    return`<div class="list-item"><div class="grade-circle grade-${g}" style="width:36px;height:36px;font-size:12px;margin-right:12px">${g}</div><div class="list-info"><div class="list-name" style="font-size:13px">${sub}</div><div class="list-sub">IA Total: ${tot}/50</div></div></div>`;
+  }).join('');
+  // Announcements
+  document.getElementById('p-announcements').innerHTML=DB.announcements.slice(0,3).map(a=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:700">${a.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${a.body.substring(0,80)}...</div>
+    </div>`).join('');
+  // Achievements
+  const achs=DB.achievements[roll]||[];
+  document.getElementById('p-achievements').innerHTML=achs.length?achs.map(a=>`
+    <div class="list-item">
+      <div class="list-info"><div class="list-name" style="font-size:13px">${a.title}</div><div class="list-sub">${a.cat} · ${a.level} · ${a.year}</div></div>
+      <span class="badge badge-${a.verified?'green':'amber'}">${a.verified?'✓ Verified':'Pending'}</span>
+    </div>`).join(''):'<p style="color:var(--muted);font-size:13px">No achievements recorded</p>';
+}
+
+// ===================== TUTOR APP =====================
+function showTutorApp(){
+  renderTutorHome();renderTutorStudentList();renderTutorAttendance();renderTutorMessages();renderTutorAnnouncements();
+  // Restore tutor photo
+  if(DB.tutorPhoto){
+    const el=document.getElementById('t-home-avatar');
+    if(el)el.innerHTML=`<img src="${DB.tutorPhoto}" alt="Tutor" style="width:100%;height:100%;object-fit:cover">`;
+  }
+  goTo('t-home');screenHistory=['t-home'];
+}
+function renderTutorHome(){
+  document.getElementById('t-home-name').textContent='Dr. R. Meenakshi';
+  const students=DB.students;
+  document.getElementById('t-total-students').textContent=students.length;
+  const today=todayKey();
+  const todayAtt=DB.attendance[today]||{};
+  let present=0,absent=0;
+  students.forEach(s=>{const st=todayAtt[s.roll];if(st==='P'||st==='OD')present++;else if(st==='A')absent++;});
+  document.getElementById('t-present-today').textContent=present||'—';
+  document.getElementById('t-absent-today').textContent=absent||'—';
+  const lowAtt=students.filter(s=>getAttStats(s.roll,2025,11).pct<75);
+  document.getElementById('t-low-att').textContent=lowAtt.length;
+  const atRisk=students.filter(s=>getAttStats(s.roll,2025,11).pct<85).slice(0,5);
+  document.getElementById('t-atrisk-list').innerHTML=atRisk.length?atRisk.map(s=>{
+    const a=getAttStats(s.roll,2025,11);
+    return`<div class="list-item">
+      <div class="list-avatar">${s.name.charAt(0)}</div>
+      <div class="list-info"><div class="list-name" style="font-size:13px">${s.name}</div><div class="list-sub">${s.roll}</div></div>
+      <div class="list-right">
+        <span class="badge badge-${a.pct<75?'red':'amber'}">${a.pct}%</span><br>
+        <a href="https://wa.me/91${s.fatherMobile}?text=${encodeURIComponent(`Dear Parent, your ward ${s.name} has ${a.pct}% attendance. — ECE Dept, MentorMatrix`)}" target="_blank" style="font-size:11px;color:var(--green);font-weight:700;text-decoration:none;display:block;margin-top:4px">📱 WhatsApp</a>
+      </div>
+    </div>`;}).join(''):`<div style="color:var(--muted);font-size:14px;text-align:center;padding:10px">✓ No at-risk students</div>`;
+}
+function renderTutorStudentList(query){
+  const students=query?DB.students.filter(s=>s.name.toLowerCase().includes(query.toLowerCase())||s.roll.includes(query)):DB.students;
+  document.getElementById('t-student-list').innerHTML=students.map(s=>{
+    const a=getAttStats(s.roll,2025,11);
+    const photo=DB.photos&&DB.photos[s.roll];
+    return`<div class="list-item" onclick="viewStudentDetail('${s.roll}')">
+      <div class="list-avatar">${photo?`<img src="${photo}" alt="">`:`${s.name.charAt(0)}`}</div>
+      <div class="list-info"><div class="list-name">${s.name}</div><div class="list-sub">${s.roll} · ${s.gender} · ${s.community}</div></div>
+      <div class="list-right">
+        <span class="badge badge-${a.pct>=85?'green':a.pct>=75?'amber':'red'}">${a.pct}%</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${s.hosteller==='Yes'?'🏠':'🚌'}</div>
+      </div>
+    </div>`;}).join('')||'<div class="empty-state"><span class="emoji">🔍</span><p>No students found</p></div>';
+}
+function filterStudentList(q){renderTutorStudentList(q);}
+
+function viewStudentDetail(roll){
+  currentDetailRoll=roll;
+  const s=getStudent(roll);
+  const a=getAttStats(s.roll,2025,11);
+  const mk=DB.marks[roll]||{};
+  const editable=DB.editEnabled&&DB.editEnabled[roll];
+  document.getElementById('t-detail-title').textContent=s.name.split(' ')[0];
+
+  // Permission status badge
+  const permBadge=editable
+    ?'<span class="badge badge-green" style="font-size:11px">✏ Editing ENABLED for Student</span>'
+    :'<span class="badge badge-amber" style="font-size:11px">🔒 Editing LOCKED for Student</span>';
+
+  document.getElementById('t-student-detail-content').innerHTML=`
+    <!-- HERO HEADER -->
+    <div style="background:linear-gradient(135deg,var(--dark),var(--green));padding:20px;display:flex;align-items:center;gap:14px">
+      <div class="photo-circle" style="border-color:rgba(255,255,255,.5);flex-shrink:0" onclick="uploadParentPhoto('${roll}','student')">
+        ${DB.photos&&DB.photos[roll]?`<img src="${DB.photos[roll]}" alt="">`:`<div style="font-size:30px">👤</div>`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+        <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:2px">${s.roll} · ${s.gender} · ${s.bloodGroup} · CGPA: ${s.cgpa||'—'}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge badge-${a.pct>=75?'green':'red'}">${a.pct}% Att</span>
+          <span class="badge badge-blue">${s.community}</span>
+          ${s.hosteller==='Yes'?'<span class="badge badge-purple">Hosteller</span>':''}
+          ${s.bus==='Yes'?'<span class="badge badge-gray">Bus</span>':''}
+          ${s.firstGrad==='YES'?'<span class="badge badge-amber">1st Graduate</span>':''}
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px">
+      <!-- ACTION BUTTONS -->
+      <div class="btn-row" style="margin-bottom:10px">
+        <a class="btn btn-wa btn-sm" href="https://wa.me/91${s.fatherMobile}?text=${encodeURIComponent(`Dear Parent, regarding ${s.name} (${s.roll}) — ECE Dept, MentorMatrix`)}" target="_blank">📱 Father</a>
+        <a class="btn btn-wa btn-sm" href="https://wa.me/91${s.motherMobile}?text=${encodeURIComponent(`Dear Parent, regarding ${s.name} (${s.roll}) — ECE Dept, MentorMatrix`)}" target="_blank">📱 Mother</a>
+      </div>
+      <div class="btn-row" style="margin-bottom:6px">
+        <button class="btn ${editable?'btn-red':'btn-primary'} btn-sm" onclick="toggleEdit('${roll}')">
+          ${editable?'🔒 Lock Student Editing':'🔓 Enable Student Editing'}
+        </button>
+        <a class="btn btn-outline btn-sm" href="tel:${s.mobile}">📞 Call</a>
+      </div>
+
+      <!-- PERMISSION STATUS PANEL -->
+      <div style="background:${editable?'#d1fae5':'#fef3c7'};border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:20px">${editable?'✏':'🔒'}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${editable?'#065f46':'#92400e'}">${editable?'Student profile editing is ENABLED':'Student profile editing is LOCKED'}</div>
+          <div style="font-size:11px;color:${editable?'#047857':'#b45309'};margin-top:2px">${editable?'The student can update their personal, parent, bank fields and upload photos.':'The student sees all data in read-only mode. Toggle above to grant access.'}</div>
+        </div>
+      </div>
+
+      <!-- TUTOR EDITABLE: PERSONAL DETAILS -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">📋 Personal Details</div>
+          <span style="font-size:11px;color:var(--green);font-weight:700">Tutor can always edit</span>
+        </div>
+        <div class="form-group"><label class="form-label">Full Name</label>
+          <input class="form-input" value="${s.name}" onchange="updateFieldDetail('${roll}','name',this.value)" placeholder="Full name"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Mobile</label>
+            <input class="form-input" value="${s.mobile||''}" onchange="updateFieldDetail('${roll}','mobile',this.value)" placeholder="Mobile"></div>
+          <div class="form-group"><label class="form-label">Blood Group</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','bloodGroup',this.value)">
+              ${['A+ve','A-ve','B+ve','B-ve','O+ve','O-ve','AB+ve','AB-ve'].map(bg=>`<option ${s.bloodGroup===bg?'selected':''}>${bg}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">Date of Birth</label>
+            <input class="form-input" value="${s.dob||''}" onchange="updateFieldDetail('${roll}','dob',this.value)" placeholder="DD/MM/YYYY"></div>
+          <div class="form-group"><label class="form-label">Gender</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','gender',this.value)">
+              ${['Male','Female','Other'].map(g=>`<option ${s.gender===g?'selected':''}>${g}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">Religion</label>
+            <input class="form-input" value="${s.religion||''}" onchange="updateFieldDetail('${roll}','religion',this.value)" placeholder="Religion"></div>
+          <div class="form-group"><label class="form-label">Community</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','community',this.value)">
+              ${['OC','BC','MBC','SC','SCA','ST'].map(c=>`<option ${s.community===c?'selected':''}>${c}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">District</label>
+            <input class="form-input" value="${s.district||''}" onchange="updateFieldDetail('${roll}','district',this.value)" placeholder="District"></div>
+          <div class="form-group"><label class="form-label">State</label>
+            <input class="form-input" value="${s.state||'Tamil Nadu'}" onchange="updateFieldDetail('${roll}','state',this.value)" placeholder="State"></div>
+          <div class="form-group"><label class="form-label">Hostel</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','hosteller',this.value)">
+              <option ${s.hosteller==='No'?'selected':''}>No</option>
+              <option ${s.hosteller==='Yes'?'selected':''}>Yes</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">College Bus</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','bus',this.value)">
+              <option ${s.bus==='No'?'selected':''}>No</option>
+              <option ${s.bus==='Yes'?'selected':''}>Yes</option>
+            </select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label>
+          <input class="form-input" type="email" value="${s.email||''}" onchange="updateFieldDetail('${roll}','email',this.value)" placeholder="Email address"></div>
+        <div class="form-group"><label class="form-label">Aadhar Number</label>
+          <input class="form-input" value="${s.aadhar||''}" onchange="updateFieldDetail('${roll}','aadhar',this.value)" placeholder="12-digit Aadhar"></div>
+        <div class="form-group"><label class="form-label">Address</label>
+          <textarea class="form-input" rows="2" onchange="updateFieldDetail('${roll}','address',this.value)" placeholder="Permanent address">${s.address||''}</textarea></div>
+        <button class="btn btn-primary btn-sm" onclick="saveDetailProfile('${roll}')">💾 Save Personal Details</button>
+      </div>
+
+      <!-- PARENT DETAILS -->
+      <div class="card">
+        <div class="card-title">👨‍👩‍👧 Parent Details</div>
+        <div class="section-divider" style="margin-top:0">Father</div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+          <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px dashed var(--green);cursor:pointer" onclick="uploadParentPhoto('${roll}','father')">
+            ${DB.photos&&DB.photos[roll+'_father']?`<img src="${DB.photos[roll+'_father']}" style="width:100%;height:100%;object-fit:cover">`:'👨'}
+          </div>
+          <div style="flex:1;font-size:12px;color:var(--muted)">Tap photo to upload father's picture</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Father Name</label>
+            <input class="form-input" value="${s.father||''}" onchange="updateFieldDetail('${roll}','father',this.value)" placeholder="Father's name"></div>
+          <div class="form-group"><label class="form-label">Father Mobile</label>
+            <input class="form-input" type="tel" value="${s.fatherMobile||''}" onchange="updateFieldDetail('${roll}','fatherMobile',this.value)" placeholder="Father mobile"></div>
+          <div class="form-group"><label class="form-label">Occupation</label>
+            <input class="form-input" value="${s.fatherOcc||''}" onchange="updateFieldDetail('${roll}','fatherOcc',this.value)" placeholder="Occupation"></div>
+          <div class="form-group"><label class="form-label">Annual Income (₹)</label>
+            <input class="form-input" type="number" value="${s.fatherIncome||0}" onchange="updateFieldDetail('${roll}','fatherIncome',Number(this.value))"></div>
+        </div>
+        <div class="section-divider">Mother</div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+          <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px dashed var(--green);cursor:pointer" onclick="uploadParentPhoto('${roll}','mother')">
+            ${DB.photos&&DB.photos[roll+'_mother']?`<img src="${DB.photos[roll+'_mother']}" style="width:100%;height:100%;object-fit:cover">`:'👩'}
+          </div>
+          <div style="flex:1;font-size:12px;color:var(--muted)">Tap photo to upload mother's picture</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Mother Name</label>
+            <input class="form-input" value="${s.mother||''}" onchange="updateFieldDetail('${roll}','mother',this.value)" placeholder="Mother's name"></div>
+          <div class="form-group"><label class="form-label">Mother Mobile</label>
+            <input class="form-input" type="tel" value="${s.motherMobile||''}" onchange="updateFieldDetail('${roll}','motherMobile',this.value)" placeholder="Mother mobile"></div>
+          <div class="form-group"><label class="form-label">Qualification</label>
+            <input class="form-input" value="${s.motherQual||''}" onchange="updateFieldDetail('${roll}','motherQual',this.value)" placeholder="Qualification"></div>
+          <div class="form-group"><label class="form-label">Family Income (₹)</label>
+            <input class="form-input" type="number" value="${s.income||0}" onchange="updateFieldDetail('${roll}','income',Number(this.value))"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveDetailProfile('${roll}')">💾 Save Parent Details</button>
+      </div>
+
+      <!-- ACADEMIC DETAILS -->
+      <div class="card">
+        <div class="card-title">🎓 Academic Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Maths (HSC)</label>
+            <input class="form-input" type="number" value="${s.mathsHSC||0}" onchange="updateFieldDetail('${roll}','mathsHSC',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">Physics (HSC)</label>
+            <input class="form-input" type="number" value="${s.physicsHSC||0}" onchange="updateFieldDetail('${roll}','physicsHSC',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">Chemistry (HSC)</label>
+            <input class="form-input" type="number" value="${s.chemHSC||0}" onchange="updateFieldDetail('${roll}','chemHSC',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">Cut Off</label>
+            <input class="form-input" type="number" value="${s.cutoff||0}" onchange="updateFieldDetail('${roll}','cutoff',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">HSC Total</label>
+            <input class="form-input" type="number" value="${s.hscTotal||0}" onchange="updateFieldDetail('${roll}','hscTotal',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">SSLC Total</label>
+            <input class="form-input" type="number" value="${s.sslcTotal||0}" onchange="updateFieldDetail('${roll}','sslcTotal',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">CGPA</label>
+            <input class="form-input" type="number" step="0.1" value="${s.cgpa||0}" onchange="updateFieldDetail('${roll}','cgpa',Number(this.value))"></div>
+          <div class="form-group"><label class="form-label">First Graduate</label>
+            <select class="form-input" onchange="updateFieldDetail('${roll}','firstGrad',this.value)">
+              <option ${s.firstGrad==='NO'||!s.firstGrad?'selected':''} value="NO">No</option>
+              <option ${s.firstGrad==='YES'?'selected':''} value="YES">Yes</option>
+            </select></div>
+        </div>
+        <div class="form-group"><label class="form-label">School</label>
+          <input class="form-input" value="${s.school||''}" onchange="updateFieldDetail('${roll}','school',this.value)" placeholder="School name"></div>
+        <div class="form-group"><label class="form-label">Board</label>
+          <select class="form-input" onchange="updateFieldDetail('${roll}','board',this.value)">
+            ${['State Board','CBSE','ICSE','Matric'].map(b=>`<option ${s.board===b?'selected':''}>${b}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label">Admission Mode</label>
+          <select class="form-input" onchange="updateFieldDetail('${roll}','admMode',this.value)">
+            ${['Regular','Management Quota','NRI Quota','Government Quota'].map(m=>`<option ${s.admMode===m?'selected':''}>${m}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label">EMIS Number</label>
+          <input class="form-input" value="${s.emis||''}" onchange="updateFieldDetail('${roll}','emis',this.value)" placeholder="EMIS number"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveDetailProfile('${roll}')">💾 Save Academic Details</button>
+      </div>
+
+      <!-- BANK & CERTIFICATES -->
+      <div class="card">
+        <div class="card-title">🏦 Bank & Certificate Details</div>
+        <div class="form-group"><label class="form-label">Bank Name</label>
+          <input class="form-input" value="${s.bankName||''}" onchange="updateFieldDetail('${roll}','bankName',this.value)" placeholder="Bank name"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label class="form-label">Branch</label>
+            <input class="form-input" value="${s.bankBranch||''}" onchange="updateFieldDetail('${roll}','bankBranch',this.value)" placeholder="Branch"></div>
+          <div class="form-group"><label class="form-label">IFSC Code</label>
+            <input class="form-input" value="${s.ifsc||''}" onchange="updateFieldDetail('${roll}','ifsc',this.value)" placeholder="IFSC"></div>
+          <div class="form-group"><label class="form-label">Community Cert No.</label>
+            <input class="form-input" value="${s.commCertNo||''}" onchange="updateFieldDetail('${roll}','commCertNo',this.value)" placeholder="Cert number"></div>
+          <div class="form-group"><label class="form-label">Income Cert No.</label>
+            <input class="form-input" value="${s.incomeCertNo||''}" onchange="updateFieldDetail('${roll}','incomeCertNo',this.value)" placeholder="Cert number"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Scholarship Type</label>
+          <select class="form-input" onchange="updateFieldDetail('${roll}','scholarship',this.value)">
+            ${['NIL','BC','MBC','SC','ST','OBC','Other'].map(sc=>`<option ${s.scholarship===sc?'selected':''}>${sc}</option>`).join('')}
+          </select></div>
+        <button class="btn btn-primary btn-sm" onclick="saveDetailProfile('${roll}')">💾 Save Bank Details</button>
+      </div>
+
+      <!-- TUTOR NOTES -->
+      <div class="card">
+        <div class="card-title">📝 Tutor Notes & Remarks</div>
+        <div class="form-group"><label class="form-label">Private Notes (Tutor Only)</label>
+          <textarea class="form-input" rows="3" id="tutor-note-${roll}" placeholder="Add private notes about this student...">${s.tutorNote||''}</textarea></div>
+        <div class="form-group"><label class="form-label">Counselling Status</label>
+          <select class="form-input" onchange="updateFieldDetail('${roll}','counsellingStatus',this.value)">
+            ${['None','1st Session Done','2nd Session Done','Ongoing','Resolved'].map(cs=>`<option ${(s.counsellingStatus||'None')===cs?'selected':''}>${cs}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label">Academic Risk Level</label>
+          <select class="form-input" onchange="updateFieldDetail('${roll}','riskLevel',this.value)">
+            ${['Low','Medium','High','Critical'].map(rl=>`<option ${(s.riskLevel||'Low')===rl?'selected':''}>${rl}</option>`).join('')}
+          </select></div>
+        <button class="btn btn-primary btn-sm" onclick="saveTutorNote('${roll}')">💾 Save Notes</button>
+      </div>
+
+      <!-- MARKS SUMMARY -->
+      <div class="card">
+        <div class="card-title">📊 Marks Summary</div>
+        ${SUBJECTS.map(sub=>{const m=mk[sub]||{};const tot=(m.ia1||0)+(m.ia2||0)+(m.assignment||0);const g=tot>=45?'A':tot>=35?'B':tot>=25?'C':'D';
+          return`<div class="list-item">
+            <div class="grade-circle grade-${g}" style="width:32px;height:32px;font-size:12px;margin-right:10px">${g}</div>
+            <div class="list-info"><div class="list-name" style="font-size:12px">${sub}</div><div class="list-sub">IA: ${tot}/50 · Mid: ${m.midterm||'—'}/50</div></div>
+          </div>`;}).join('')}
+        <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="goBack();setTimeout(()=>goTo('t-marks'),200)">✏ Enter Marks</button>
+      </div>
+
+      <!-- ACHIEVEMENTS -->
+      <div class="card">
+        <div class="card-title">🏆 Achievements</div>
+        ${(DB.achievements[roll]||[]).map(ach=>`
+          <div class="list-item">
+            <div class="list-info"><div class="list-name" style="font-size:13px">${ach.title}</div><div class="list-sub">${ach.cat} · ${ach.level} · ${ach.year}</div></div>
+            <button class="btn btn-sm ${ach.verified?'btn-outline':'btn-green'}" onclick="verifyAchievement('${roll}','${ach.title}')">
+              ${ach.verified?'✓ Verified':'Verify'}
+            </button>
+          </div>`).join('')||'<p style="color:var(--muted);font-size:13px">No achievements added</p>'}
+      </div>
+
+      <!-- ACCESS PERMISSIONS PANEL -->
+      <div class="card" style="border:2px solid ${editable?'var(--green)':'var(--amber)'}">
+        <div class="card-title" style="color:${editable?'var(--dark)':'var(--amber)'}">🔐 Access Permissions</div>
+        <div style="font-size:13px">
+          ${[
+            ['Student can view profile','Always','green'],
+            ['Student can edit personal fields',editable?'Yes — Enabled':'No — Locked',editable?'green':'red'],
+            ['Student can edit parent fields',editable?'Yes — Enabled':'No — Locked',editable?'green':'red'],
+            ['Student can edit bank fields',editable?'Yes — Enabled':'No — Locked',editable?'green':'red'],
+            ['Student can upload own photo','Always','green'],
+            ['Tutor can edit all fields','Always (you)','green'],
+            ['Tutor can upload all photos','Always (you)','green'],
+            ['Parent can view (read-only)','Always','green'],
+          ].map(([label,val,col])=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="font-weight:600;font-size:12px;color:var(--text)">${label}</span>
+              <span class="badge badge-${col}" style="font-size:10px">${val}</span>
+            </div>`).join('')}
+        </div>
+        <button class="btn ${editable?'btn-red':'btn-primary'} btn-sm" style="margin-top:14px" onclick="toggleEdit('${roll}')">
+          ${editable?'🔒 Revoke Student Edit Access':'🔓 Grant Student Edit Access'}
+        </button>
+      </div>
+
+    </div>`;
+  goTo('t-student-detail');
+}
+function updateFieldDetail(roll,field,val){
+  const idx=DB.students.findIndex(s=>s.roll===roll);
+  if(idx>=0){DB.students[idx][field]=val;}
+  // Don't save yet — user taps Save button
+}
+function saveDetailProfile(roll){
+  saveDB();
+  renderTutorStudentList();renderTutorHome();
+  toast('✓ Changes saved for '+roll);
+}
+function saveTutorNote(roll){
+  const noteEl=document.getElementById('tutor-note-'+roll);
+  if(noteEl)updateFieldDetail(roll,'tutorNote',noteEl.value);
+  saveDB();toast('✓ Notes saved!');
+}
+function toggleEdit(roll){
+  if(!DB.editEnabled)DB.editEnabled={};
+  DB.editEnabled[roll]=!DB.editEnabled[roll];
+  saveDB();toast(DB.editEnabled[roll]?'✓ Editing enabled for '+roll:'🔒 Editing locked for '+roll);
+  viewStudentDetail(roll);
+}
+function verifyAchievement(roll,title){
+  if(DB.achievements[roll]){
+    const a=DB.achievements[roll].find(x=>x.title===title);
+    if(a)a.verified=true;saveDB();viewStudentDetail(roll);toast('✓ Achievement verified!');
+  }
+}
+
+// ATTENDANCE (tutor)
+function renderTutorAttendance(){
+  const dateInput=document.getElementById('t-att-date');
+  dateInput.value=todayDateStr();
+  loadAttendanceForDate(todayDateStr());
+}
+function loadAttendanceForDate(dateStr){
+  if(!dateStr)return;
+  const[y,m,d]=dateStr.split('-');
+  const key=`${y}_${m}`;
+  if(!DB.attendance[key])DB.attendance[key]={};
+  const dayAtt=DB.attendance[key];
+  document.getElementById('t-att-list').innerHTML=DB.students.map(s=>{
+    const cur=(dayAtt[s.roll]&&dayAtt[s.roll][d])||'';
+    return`<div class="card" style="margin-bottom:8px;padding:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="list-avatar" style="width:38px;height:38px;font-size:13px">${s.name.charAt(0)}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:11px;color:var(--muted)">${s.roll}</div></div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          ${['P','A','L','OD','H'].map(st=>`<button onclick="setAttStatus('${s.roll}','${d}','${key}','${st}')"
+            style="width:34px;height:34px;border-radius:8px;border:2px solid ${cur===st?'var(--dark)':'var(--border)'};background:${cur===st?(st==='P'?'#d1fae5':st==='A'?'#fee2e2':st==='L'?'#fef3c7':st==='OD'?'#dbeafe':'#f3f4f6'):'#fff'};color:${cur===st?'var(--dark)':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer">${st}</button>`).join('')}
+        </div>
+      </div>
+    </div>`;}).join('');
+}
+function setAttStatus(roll,day,monthKey,status){
+  if(!DB.attendance[monthKey])DB.attendance[monthKey]={};
+  if(!DB.attendance[monthKey][roll])DB.attendance[monthKey][roll]={};
+  DB.attendance[monthKey][roll][day]=status;
+  if(!DB.attendance[roll])DB.attendance[roll]={};
+  DB.attendance[roll][day]=status;
+  saveDB();
+  const dateStr=document.getElementById('t-att-date').value;
+  loadAttendanceForDate(dateStr);
+}
+function markAll(status){
+  const dateStr=document.getElementById('t-att-date').value;
+  if(!dateStr)return;
+  const[y,m,d]=dateStr.split('-');
+  const key=`${y}_${m}`;
+  if(!DB.attendance[key])DB.attendance[key]={};
+  DB.students.forEach(s=>{
+    if(!DB.attendance[key][s.roll])DB.attendance[key][s.roll]={};
+    DB.attendance[key][s.roll][d]=status;
+    if(!DB.attendance[s.roll])DB.attendance[s.roll]={};
+    DB.attendance[s.roll][d]=status;
+  });
+  saveDB();loadAttendanceForDate(dateStr);toast('✓ All marked '+status);
+}
+function saveAttendance(){
+  const dateStr=document.getElementById('t-att-date').value;
+  if(!dateStr){toast('Select a date');return;}
+  const[y,m,d]=dateStr.split('-');
+  const key=`${y}_${m}`;
+  const dayAtt=DB.attendance[key]||{};
+  const absentees=DB.students.filter(s=>(dayAtt[s.roll]&&dayAtt[s.roll][d])==='A');
+  saveDB();
+  if(absentees.length>0){
+    const msgs=absentees.map(s=>`<a class="btn btn-wa" style="margin-bottom:8px;font-size:13px" href="https://wa.me/91${s.fatherMobile}?text=${encodeURIComponent(`Dear Parent, your ward ${s.name} (${s.roll}) was ABSENT on ${dateStr}. — ECE Dept, MentorMatrix`)}" target="_blank">📱 Notify: ${s.name.split(' ')[0]}'s Parent</a>`).join('');
+    if(!DB.msgLog)DB.msgLog=[];
+    DB.msgLog.unshift({time:new Date().toLocaleString('en-IN'),text:`Attendance saved. ${absentees.length} absent: ${absentees.map(s=>s.name).join(', ')}`,type:'attendance'});
+    saveDB();
+    document.getElementById('t-att-list').innerHTML=`<div class="alert alert-green">✓ Saved for ${dateStr}. ${absentees.length} absent.</div>`+msgs;
+  }else{
+    toast('✓ Attendance saved — All present!');
+    if(!DB.msgLog)DB.msgLog=[];
+    DB.msgLog.unshift({time:new Date().toLocaleString('en-IN'),text:`All present on ${dateStr}`,type:'attendance'});saveDB();
+  }
+}
+
+// MARKS (tutor)
+function renderMarksEntry(){
+  const sub=document.getElementById('t-marks-subject').value;
+  const type=document.getElementById('t-marks-type').value;
+  const typeMax={ia1:20,ia2:20,assignment:10,midterm:50,endsem:100};
+  const max=typeMax[type];
+  document.getElementById('t-marks-entry-list').innerHTML=`
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px">${sub} — Max: ${max}</div>
+    ${DB.students.map(s=>{
+      const m=(DB.marks[s.roll]&&DB.marks[s.roll][sub])||{};
+      const val=m[type]||'';
+      return`<div class="mark-entry-row">
+        <div class="list-avatar" style="width:36px;height:36px;font-size:12px">${s.name.charAt(0)}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:11px;color:var(--muted)">${s.roll}</div></div>
+        <input class="mark-input" id="mark-${s.roll}" type="number" min="0" max="${max}" value="${val}" placeholder="${max}">
+      </div>`;
+    }).join('')}`;
+}
+function saveMarks(){
+  const sub=document.getElementById('t-marks-subject').value;
+  const type=document.getElementById('t-marks-type').value;
+  const typeMax={ia1:20,ia2:20,assignment:10,midterm:50,endsem:100};
+  const max=typeMax[type];
+  let saved=0;
+  DB.students.forEach(s=>{
+    const inp=document.getElementById('mark-'+s.roll);
+    if(!inp)return;
+    const val=inp.value.trim();
+    if(val==='')return;
+    const n=Number(val);
+    if(isNaN(n)||n<0||n>max){inp.style.borderColor='var(--red)';return;}
+    inp.style.borderColor='';
+    if(!DB.marks[s.roll])DB.marks[s.roll]={};
+    if(!DB.marks[s.roll][sub])DB.marks[s.roll][sub]={};
+    DB.marks[s.roll][sub][type]=n;saved++;
+  });
+  saveDB();toast(`✓ Marks saved for ${saved} student(s)`);
+}
+
+// ADD STUDENT (tutor)
+function saveNewStudent(){
+  const roll=document.getElementById('ns-roll').value.trim();
+  const name=document.getElementById('ns-name').value.trim();
+  if(!roll||!name){toast('Roll number and name are required');return;}
+  if(DB.students.find(s=>s.roll===roll)){toast('Roll number already exists');return;}
+  const dob=document.getElementById('ns-dob').value;
+  const m=Number(document.getElementById('ns-maths').value)||0;
+  const ph=Number(document.getElementById('ns-physics').value)||0;
+  const ch=Number(document.getElementById('ns-chem').value)||0;
+  const co=(m/2+ph/2+ch/2).toFixed(2);
+  const student={
+    roll,name,
+    gender:document.getElementById('ns-gender').value,
+    dob:dob?new Date(dob).toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'}):'',
+    mobile:document.getElementById('ns-mobile').value.trim(),
+    email:document.getElementById('ns-email').value.trim(),
+    religion:document.getElementById('ns-religion').value.trim(),
+    community:document.getElementById('ns-community').value,
+    caste:document.getElementById('ns-caste').value.trim(),
+    bloodGroup:document.getElementById('ns-blood').value,
+    aadhar:document.getElementById('ns-aadhar').value.trim(),
+    father:document.getElementById('ns-father').value.trim(),
+    fatherMobile:document.getElementById('ns-fmobile').value.trim(),
+    fatherOcc:document.getElementById('ns-focc').value.trim(),
+    fatherIncome:Number(document.getElementById('ns-income').value)||0,
+    mother:document.getElementById('ns-mother').value.trim(),
+    motherMobile:document.getElementById('ns-mmobile').value.trim(),
+    motherQual:'',
+    income:Number(document.getElementById('ns-income').value)||0,
+    address:document.getElementById('ns-address').value.trim(),
+    district:document.getElementById('ns-district').value.trim(),
+    nationality:'Indian',state:'Tamil Nadu',
+    cutoff:Number(co),
+    hscTotal:m+ph+ch,
+    mathsHSC:m,physicsHSC:ph,chemHSC:ch,sslcTotal:0,
+    board:document.getElementById('ns-board').value,
+    school:document.getElementById('ns-school').value.trim(),
+    bankName:document.getElementById('ns-bank').value.trim(),
+    bankBranch:document.getElementById('ns-branch').value.trim(),
+    ifsc:document.getElementById('ns-ifsc').value.trim(),
+    bus:document.getElementById('ns-bus').value,
+    hosteller:document.getElementById('ns-hostel').value,
+    commCertNo:'',incomeCertNo:'',scholarship:'NIL',
+    admMode:document.getElementById('ns-adm').value,
+    emis:document.getElementById('ns-emis').value.trim(),
+    cgpa:0,firstGrad:'NO',
+  };
+  DB.students.push(student);
+  const pass=document.getElementById('ns-pass').value||'pass123';
+  DB.users[roll]={pass,role:'student',roll};
+  DB.users['parent'+roll]={pass:'pass123',role:'parent',roll};
+  saveDB();
+  renderTutorStudentList();renderTutorHome();
+  toast('✓ Student '+name+' added!');
+  goBack();
+}
+
+// MESSAGES (tutor)
+const MSG_TEMPLATES={
+  absent:'Dear Parent,\n\nYour ward [NAME] ([ROLL]) was ABSENT today ([DATE]).\n\nKindly ensure regular attendance to avoid detention.\n\n— National Engineering College\nMentorMatrix',
+  low:'Dear Parent,\n\nYour ward [NAME] ([ROLL]) has low attendance ([PCT]%), below the required 75%.\n\nPlease ensure regular attendance immediately.\n\n— National Engineering College\nMentorMatrix',
+  marks:'Dear Parent,\n\nIA Results for [NAME] ([ROLL]) are now available on MentorMatrix. Please contact the tutor for details.\n\n— National Engineering College\nMentorMatrix',
+  general:'Dear Parent,\n\nThis is a message from National Engineering College regarding your ward [NAME] ([ROLL]).\n\n[MESSAGE]\n\n— National Engineering College\nMentorMatrix',
+  custom:''
+};
+function renderTutorMessages(){setMsgTemplate();renderMsgLog();}
+function setMsgTemplate(){
+  const t=document.getElementById('msg-template').value;
+  const target=document.getElementById('msg-target').value;
+  let s=DB.students[0];
+  if(target==='custom'){
+    document.getElementById('msg-custom-student').style.display='block';
+    const r=document.getElementById('msg-custom-roll').value;
+    if(r)s=getStudent(r)||s;
+  }else{
+    document.getElementById('msg-custom-student').style.display='none';
+  }
+  const a=getAttStats(s.roll,2025,11);
+  const tmpl=(MSG_TEMPLATES[t]||'').replace('[NAME]',s.name).replace('[ROLL]',s.roll).replace('[DATE]',new Date().toLocaleDateString('en-IN')).replace('[PCT]',a.pct+'%').replace('[MESSAGE]','[Your message here]');
+  document.getElementById('msg-text').value=tmpl;
+  updateMsgPreview();
+}
+function updateMsgPreview(){
+  const target=document.getElementById('msg-target').value;
+  const text=document.getElementById('msg-text').value;
+  if(target==='custom'){
+    document.getElementById('msg-custom-student').style.display='block';
+    const r=document.getElementById('msg-custom-roll').value;
+    const s=r?getStudent(r):null;
+    document.getElementById('msg-preview').textContent=s?text.replace('[NAME]',s.name).replace('[ROLL]',s.roll):text;
+    document.getElementById('msg-wa-buttons').innerHTML=s?`<a class="btn btn-wa" href="https://wa.me/91${s.fatherMobile}?text=${encodeURIComponent(text)}" target="_blank" onclick="logMsg('${s.name}')">📱 Send to ${s.name.split(' ')[0]}'s Father</a>`:'';
+    return;
+  }
+  document.getElementById('msg-custom-student').style.display='none';
+  let students=[];
+  if(target==='absent'){const today=todayKey();const t=DB.attendance[today]||{};students=DB.students.filter(s=>t[s.roll]==='A');}
+  else if(target==='low'){students=DB.students.filter(s=>getAttStats(s.roll,2025,11).pct<75);}
+  else{students=[...DB.students];}
+  const first=students[0];
+  document.getElementById('msg-preview').textContent=first?text.replace('[NAME]',first.name).replace('[ROLL]',first.roll):text;
+  document.getElementById('msg-wa-buttons').innerHTML=students.map(s=>`<a class="btn btn-wa" style="margin-bottom:8px;font-size:13px" href="https://wa.me/91${s.fatherMobile}?text=${encodeURIComponent(text.replace('[NAME]',s.name).replace('[ROLL]',s.roll))}" target="_blank" onclick="logMsg('${s.name}')">📱 Send to ${s.name.split(' ')[0]}'s Father</a>`).join('');
+}
+function logMsg(name){
+  if(!DB.msgLog)DB.msgLog=[];
+  DB.msgLog.unshift({time:new Date().toLocaleString('en-IN'),text:`WhatsApp sent to ${name}'s parent`,type:'message'});
+  saveDB();setTimeout(renderMsgLog,300);
+}
+function renderMsgLog(){
+  const logs=(DB.msgLog||[]).slice(0,10);
+  document.getElementById('msg-log').innerHTML=logs.length?logs.map(l=>`
+    <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="tl-dot" style="margin-top:4px"></div>
+      <div><div style="font-size:13px;font-weight:600">${l.text}</div><div style="font-size:11px;color:var(--muted)">${l.time}</div></div>
+    </div>`).join(''):'<p style="color:var(--muted);font-size:13px">No messages sent yet</p>';
+}
+
+// ANNOUNCEMENTS (tutor)
+function renderTutorAnnouncements(){
+  const typeCols={Academic:'blue',Finance:'amber',Event:'green',Exam:'purple',General:'gray'};
+  document.getElementById('t-announce-list').innerHTML=DB.announcements.map(a=>`
+    <div class="announce-item">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <h4 style="flex:1">${a.title}</h4>
+        <span class="badge badge-${typeCols[a.type]||'gray'}">${a.type}</span>
+      </div>
+      <p>${a.body}</p>
+      <div class="announce-meta"><span style="font-size:12px;color:var(--muted)">📢 ${a.by}</span><span style="font-size:12px;color:var(--muted)">🗓 ${a.date}</span></div>
+    </div>`).join('');
+}
+function postAnnouncement(){
+  const title=document.getElementById('t-ann-title').value.trim();
+  const body=document.getElementById('t-ann-body').value.trim();
+  if(!title||!body){toast('Fill title and message');return;}
+  DB.announcements.unshift({id:Date.now(),title,body,type:document.getElementById('t-ann-cat').value,by:'Tutor - Dr. R. Meenakshi',date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),pinned:false,role:'all'});
+  saveDB();document.getElementById('t-ann-title').value='';document.getElementById('t-ann-body').value='';
+  renderTutorAnnouncements();toast('✓ Announcement posted!');
+}
+
+// IMPORT EXCEL
+function importExcel(input){
+  const file=input.files[0];if(!file){return;}
+  document.getElementById('import-result').innerHTML=`<div class="alert alert-blue">⏳ Reading ${file.name}...</div>`;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!data.length){document.getElementById('import-result').innerHTML='<div class="alert alert-red">No data found</div>';return;}
+      let imported=0,updated=0;
+      data.forEach(row=>{
+        const roll=String(row['Roll No']||row['roll']||row['ROLL NO']||'').trim();
+        const name=String(row['Name of the Student']||row['name']||row['NAME']||'').trim();
+        if(!roll||!name)return;
+        const existing=DB.students.findIndex(s=>s.roll===roll);
+        const studentData={roll,name,gender:row['Gender']||'',dob:row['Date of Birth']||'',mobile:String(row['Mobile']||''),email:row['Students Mail ID']||row['Email ID']||'',religion:row['Religion']||'',community:row['Community']||'',caste:row['Caste']||'',bloodGroup:row['Blood Group']||'',aadhar:String(row['Aadhar Number']||''),father:row["Father's Name"]||'',fatherMobile:String(row["Father's Phone Number"]||''),fatherOcc:row["Father's Occupation"]||'',fatherIncome:Number(row["Father's  Annual Income"]||0),mother:row["Mother's Name"]||'',motherMobile:String(row["Mother's Phone Number"]||''),motherQual:row["Mother's Qualification"]||'',income:Number(row['Annual Family Income']||0),address:row['Permanent Address']||'',district:row['District']||'',nationality:'Indian',state:'Tamil Nadu',cutoff:Number(row['Cut Off']||0),hscTotal:Number(row['HSC Total Mark']||0),mathsHSC:Number(row['Maths Mark (HSC)']||0),physicsHSC:Number(row['Physics Mark (HSC)']||0),chemHSC:Number(row['Chemistry Mark (HSC)']||0),sslcTotal:Number(row['SSLC Total Mark']||0),board:row['Board of School']||'',school:row['Name of the School']||'',bankName:row['Bank Name']||'',bankBranch:row['Branch name']||'',ifsc:row['IFSC Code']||'',bus:row['Whether using College Bus']||'',hosteller:row['Hosteller']||'',commCertNo:String(row['Community Certificate Number']||''),incomeCertNo:String(row['Income Certificate']||''),scholarship:row['School Scholarship']||'',achievements:row['Achievements']||'NIL',admMode:row['Admission Mode']||'',emis:String(row['EMIS Number']||''),cgpa:0,firstGrad:'NO'};
+        if(!DB.users[roll])DB.users[roll]={pass:'pass123',role:'student',roll};
+        if(!DB.users['parent'+roll])DB.users['parent'+roll]={pass:'pass123',role:'parent',roll};
+        if(existing>=0){DB.students[existing]={...DB.students[existing],...studentData};updated++;}
+        else{DB.students.push(studentData);imported++;}
+      });
+      saveDB();renderTutorStudentList();renderTutorHome();
+      document.getElementById('import-result').innerHTML=`<div class="alert alert-green">✓ ${imported} new, ${updated} updated.</div><div class="card"><div class="card-title">Recent Students</div>${DB.students.slice(-5).map(s=>`<div class="list-item"><div class="list-avatar">${s.name.charAt(0)}</div><div class="list-info"><div class="list-name" style="font-size:13px">${s.name}</div><div class="list-sub">${s.roll}</div></div><span class="badge badge-green">✓</span></div>`).join('')}</div>`;
+    }catch(err){document.getElementById('import-result').innerHTML=`<div class="alert alert-red">Error: ${err.message}</div>`;}
+  };
+  reader.readAsBinaryString(file);input.value='';
+}
+
+// EDIT TOGGLE MODAL
+function openEditToggle(){
+  const list=document.getElementById('edit-toggle-list');
+  list.innerHTML=DB.students.map(s=>`
+    <div class="toggle-row">
+      <div><div class="toggle-label">${s.name}</div><div class="toggle-sub">${s.roll}</div></div>
+      <button class="toggle ${DB.editEnabled&&DB.editEnabled[s.roll]?'on':''}" id="tog-${s.roll}" onclick="toggleEditModal('${s.roll}')"></button>
+    </div>`).join('');
+  document.getElementById('edit-modal').classList.add('open');
+}
+function toggleEditModal(roll){
+  if(!DB.editEnabled)DB.editEnabled={};
+  DB.editEnabled[roll]=!DB.editEnabled[roll];saveDB();
+  const btn=document.getElementById('tog-'+roll);
+  if(btn)btn.classList.toggle('on',DB.editEnabled[roll]);
+}
+function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');}
+
+// ===================== HOD APP =====================
+function showHODApp(){renderHODHome();renderHODStudentList();renderHODAnnouncements();renderHODReports();goTo('h-home');screenHistory=['h-home'];}
+function renderHODHome(){
+  const students=DB.students;
+  document.getElementById('h-total-students').textContent=students.length;
+  let totalAtt=0;students.forEach(s=>{totalAtt+=getAttStats(s.roll,2025,11).pct;});
+  const avgAtt=students.length?Math.round(totalAtt/students.length):0;
+  const lowCount=students.filter(s=>getAttStats(s.roll,2025,11).pct<75).length;
+  document.getElementById('h-avg-att').textContent=avgAtt+'%';
+  document.getElementById('h-low-count').textContent=lowCount;
+  document.getElementById('h-tutor-summary').innerHTML=`
+    <div class="tutor-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#dbeafe;display:flex;align-items:center;justify-content:center">
+          ${DB.tutorPhoto?`<img src="${DB.tutorPhoto}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:16px;font-weight:800;color:#1e40af">RM</span>`}
+        </div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:800">Dr. R. Meenakshi</div><div style="font-size:12px;color:var(--muted)">Section A · ${students.length} Students</div></div>
+        <div style="text-align:right">
+          <span class="badge badge-${avgAtt>=85?'green':'amber'}">${avgAtt}% Avg Att</span>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">CGPA: ${students.length?((students.reduce((a,s)=>a+(s.cgpa||0),0))/students.length).toFixed(1):'—'} avg</div>
+        </div>
+      </div>
+    </div>`;
+  const male=students.filter(s=>s.gender==='Male').length;
+  const female=students.filter(s=>s.gender==='Female').length;
+  const hostel=students.filter(s=>s.hosteller==='Yes').length;
+  const bus=students.filter(s=>s.bus==='Yes').length;
+  const firstGrad=students.filter(s=>s.firstGrad==='YES').length;
+  document.getElementById('h-dept-stats').innerHTML=`
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      ${[['Total Students',students.length,''],['Male',male,''],['Female',female,''],['Hostel Students',hostel,''],['Bus Commuters',bus,''],['Below 75% Attendance',lowCount,lowCount>0?'red':'green'],['First Graduates',firstGrad,'']].map(([k,v,c])=>`
+      <tr><td style="padding:8px 0;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">${k}</td>
+      <td style="padding:8px 0;text-align:right;font-weight:800;border-bottom:1px solid var(--border);color:${c==='red'?'var(--red)':c==='green'?'var(--green)':'var(--text)'}">${v}</td></tr>`).join('')}
+    </table>`;
+}
+function renderHODStudentList(q){
+  const students=q?DB.students.filter(s=>s.name.toLowerCase().includes(q.toLowerCase())||s.roll.includes(q)):DB.students;
+  document.getElementById('h-student-list').innerHTML=students.map(s=>{
+    const a=getAttStats(s.roll,2025,11);
+    return`<div class="list-item">
+      <div class="list-avatar">${s.name.charAt(0)}</div>
+      <div class="list-info"><div class="list-name">${s.name}</div><div class="list-sub">${s.roll} · ${s.gender} · ${s.community} · Att: ${a.pct}%</div></div>
+      <span class="badge badge-${a.pct>=85?'green':a.pct>=75?'amber':'red'}">${a.pct}%</span>
+    </div>`;}).join('');
+}
+function filterHODStudents(q){renderHODStudentList(q);}
+function renderHODAnnouncements(){
+  const typeCols={Academic:'blue',Finance:'amber',Event:'green',Exam:'purple',General:'gray'};
+  document.getElementById('h-announce-list').innerHTML=DB.announcements.map(a=>`
+    <div class="announce-item">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <h4 style="flex:1">${a.title}</h4>
+        <span class="badge badge-${typeCols[a.type]||'gray'}">${a.type}</span>
+      </div>
+      <p>${a.body}</p>
+      <div class="announce-meta"><span style="font-size:12px;color:var(--muted)">📢 ${a.by}</span><span style="font-size:12px;color:var(--muted)">🗓 ${a.date}</span></div>
+    </div>`).join('');
+}
+function postHODAnnouncement(){
+  const title=document.getElementById('h-ann-title').value.trim();
+  const body=document.getElementById('h-ann-body').value.trim();
+  if(!title||!body){toast('Fill all fields');return;}
+  DB.announcements.unshift({id:Date.now(),title,body,type:document.getElementById('h-ann-cat').value,by:'HOD - Prof. P. Sundaram',date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),pinned:false,role:document.getElementById('h-ann-audience').value});
+  saveDB();['h-ann-title','h-ann-body'].forEach(id=>document.getElementById(id).value='');
+  renderHODAnnouncements();toast('✓ Announcement posted!');
+}
+function renderHODReports(){
+  const students=DB.students;
+  const male=students.filter(s=>s.gender==='Male').length;
+  const female=students.filter(s=>s.gender==='Female').length;
+  const comms={};students.forEach(s=>{comms[s.community]=(comms[s.community]||0)+1;});
+  const hostel=students.filter(s=>s.hosteller==='Yes').length;
+  const bus=students.filter(s=>s.bus==='Yes').length;
+  document.getElementById('h-reports-content').innerHTML=`
+    <div class="card">
+      <div class="card-title">📊 Demographics Report</div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <tr><td style="padding:8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:700">Gender</td><td style="padding:8px;border-bottom:1px solid var(--border);text-align:right;font-weight:800">Male: ${male} | Female: ${female}</td></tr>
+        ${Object.entries(comms).map(([c,n])=>`<tr><td style="padding:8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:700">${c}</td><td style="padding:8px;border-bottom:1px solid var(--border);text-align:right;font-weight:800">${n} students</td></tr>`).join('')}
+        <tr><td style="padding:8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:700">Hostel</td><td style="padding:8px;border-bottom:1px solid var(--border);text-align:right;font-weight:800">${hostel}</td></tr>
+        <tr><td style="padding:8px;color:var(--muted);font-weight:700">Bus Users</td><td style="padding:8px;text-align:right;font-weight:800">${bus}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Attendance Report — Nov 2025</div>
+      ${students.map(s=>{const a=getAttStats(s.roll,2025,11);return`<div class="sub-att-row"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${s.name}</div><div style="font-size:11px;color:var(--muted)">${s.roll}</div><div class="progress-bar" style="margin-top:4px"><div class="progress-fill ${a.pct>=85?'prog-green':a.pct>=75?'prog-amber':'prog-red'}" style="width:${a.pct}%"></div></div></div><span class="badge badge-${a.pct>=85?'green':a.pct>=75?'amber':'red'}" style="margin-left:10px">${a.pct}%</span></div>`;}).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Achievements Report</div>
+      ${Object.entries(DB.achievements||{}).map(([roll,achs])=>{const s=getStudent(roll);return achs.map(a=>`<div class="list-item"><div class="list-info"><div class="list-name" style="font-size:13px">${s.name}</div><div class="list-sub">${a.title} · ${a.level} · ${a.cat}</div></div><span class="badge badge-${a.verified?'green':'amber'}">${a.verified?'✓':'Pending'}</span></div>`).join('');}).join('')||'<p style="color:var(--muted);font-size:13px">No achievements recorded</p>'}
+    </div>`;
+}
+
+// ===================== CHANGE PASSWORD =====================
+function openChangePassword(context){
+  pwChangeContext=context;
+  document.getElementById('pw-current').value='';
+  document.getElementById('pw-new').value='';
+  document.getElementById('pw-confirm').value='';
+  document.getElementById('pw-error').style.display='none';
+  document.getElementById('pw-modal').classList.add('open');
+}
+function closePwModal(){document.getElementById('pw-modal').classList.remove('open');}
+function doChangePassword(){
+  const curr=document.getElementById('pw-current').value;
+  const nw=document.getElementById('pw-new').value;
+  const conf=document.getElementById('pw-confirm').value;
+  const errEl=document.getElementById('pw-error');
+  errEl.style.display='none';
+  if(!curr||!nw||!conf){errEl.textContent='Please fill all fields';errEl.style.display='flex';return;}
+  if(nw!==conf){errEl.textContent='New passwords do not match';errEl.style.display='flex';return;}
+  if(nw.length<4){errEl.textContent='Password must be at least 4 characters';errEl.style.display='flex';return;}
+  const username=currentUser.username;
+  const user=DB.users[username];
+  if(!user||user.pass!==curr){errEl.textContent='Current password is incorrect';errEl.style.display='flex';return;}
+  DB.users[username].pass=nw;
+  currentUser.pass=nw;
+  saveDB();
+  closePwModal();
+  toast('✓ Password updated successfully!');
+}
+
+// ===================== DOWNLOAD / EXPORT =====================
+function openDownloadModal(ctx){
+  downloadContext=ctx;
+  const opts=document.getElementById('download-options');
+  opts.innerHTML=`
+    <div class="dl-option" onclick="doDownload('excel')">
+      <div class="dl-icon" style="background:#d1fae5">📊</div>
+      <div class="dl-info"><h4>Excel (.xlsx)</h4><p>Spreadsheet with all data, sortable &amp; filterable</p></div>
+    </div>
+    <div class="dl-option" onclick="doDownload('word')">
+      <div class="dl-icon" style="background:#dbeafe">📄</div>
+      <div class="dl-info"><h4>Word Document (.html)</h4><p>Formatted report ready to print or share</p></div>
+    </div>
+    <div class="dl-option" onclick="doDownload('pdf')">
+      <div class="dl-icon" style="background:#fee2e2">🖨</div>
+      <div class="dl-info"><h4>PDF (Print/Save)</h4><p>Opens print dialog — Save as PDF</p></div>
+    </div>`;
+  document.getElementById('download-modal').classList.add('open');
+}
+function closeDownloadModal(){document.getElementById('download-modal').classList.remove('open');}
+function doDownload(fmt){
+  closeDownloadModal();
+  if(fmt==='excel')exportToExcel();
+  else if(fmt==='word')exportToWord();
+  else exportToPDF();
+}
+
+function getExportData(){
+  const ctx=downloadContext;
+  const students=DB.students;
+  if(ctx==='attendance'&&currentUser){
+    const roll=currentUser.roll;
+    const s=getStudent(roll);
+    const dayAtt=(DB.attendance['2025_11']&&DB.attendance['2025_11'][roll])||{};
+    return{title:'Attendance Report - '+s.name,rows:[{Name:s.name,Roll:s.roll,'Nov Attendance':getAttStats(roll,2025,11).pct+'%',...Object.fromEntries(Array.from({length:30},(_,i)=>['Day '+(i+1),dayAtt[i+1]||'—']))}]};
+  }
+  if(ctx==='marks'&&currentUser){
+    const roll=currentUser.roll;
+    const s=getStudent(roll);
+    const mk=DB.marks[roll]||{};
+    return{title:'Marks Report - '+s.name,rows:SUBJECTS.map(sub=>{const m=mk[sub]||{};return{Subject:sub,'IA 1':m.ia1||'—','IA 2':m.ia2||'—','Assignment':m.assignment||'—','Mid Term':m.midterm||'—','End Sem':m.endsem||'—','Total IA':(m.ia1||0)+(m.ia2||0)+(m.assignment||0)};})};
+  }
+  if(ctx==='studentDetail'&&currentDetailRoll){
+    const s=getStudent(currentDetailRoll);
+    const a=getAttStats(s.roll,2025,11);
+    return{title:'Student Report - '+s.name,rows:[{Name:s.name,Roll:s.roll,Gender:s.gender,DOB:s.dob,Mobile:s.mobile,Email:s.email,Community:s.community,Caste:s.caste,Father:s.father,'Father Mobile':s.fatherMobile,Mother:s.mother,'Mother Mobile':s.motherMobile,District:s.district,'Attendance %':a.pct+'%','Cut Off':s.cutoff,'HSC Total':s.hscTotal,Hostel:s.hosteller,Bus:s.bus}]};
+  }
+  if(ctx==='parent'&&currentUser){
+    const roll=currentUser.roll;
+    const s=getStudent(roll);
+    const a=getAttStats(roll,2025,11);
+    const mk=DB.marks[roll]||{};
+    const rows=SUBJECTS.map(sub=>{const m=mk[sub]||{};return{Subject:sub,'IA 1':m.ia1||'—','IA 2':m.ia2||'—','Assignment':m.assignment||'—','Mid Term':m.midterm||'—'};});
+    rows.unshift({Subject:'ATTENDANCE',Name:s.name,Roll:s.roll,'IA 1':a.present+' Present','IA 2':a.absent+' Absent','Assignment':a.pct+'%','Mid Term':'','Father Mobile':s.fatherMobile});
+    return{title:'Student Performance - '+s.name,rows};
+  }
+  // studentList / tutor / hod / hodReports
+  return{title:'Student List - ECE 2025-26',rows:students.map(s=>{const a=getAttStats(s.roll,2025,11);return{Name:s.name,Roll:s.roll,Gender:s.gender,DOB:s.dob,Mobile:s.mobile,Email:s.email,Community:s.community,Father:s.father,'Father Mobile':s.fatherMobile,Mother:s.mother,District:s.district,'Att %':a.pct+'%','Cut Off':s.cutoff,'HSC Total':s.hscTotal,CGPA:s.cgpa||'—',Hostel:s.hosteller,Bus:s.bus,Scholarship:s.scholarship,EMIS:s.emis};})};
+}
+
+function exportToExcel(){
+  const{title,rows}=getExportData();
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Report');
+  XLSX.writeFile(wb,title.replace(/[^a-z0-9]/gi,'_')+'.xlsx');
+  toast('✓ Excel file downloaded!');
+}
+
+function exportToWord(){
+  const{title,rows}=getExportData();
+  if(!rows.length){toast('No data to export');return;}
+  const headers=Object.keys(rows[0]);
+  const tableRows=rows.map(r=>`<tr>${headers.map(h=>`<td style="border:1px solid #ccc;padding:6px 10px;font-size:12px">${r[h]||'—'}</td>`).join('')}</tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+  <style>body{font-family:Calibri,Arial,sans-serif;margin:30px}h1{color:#0F6E56;font-size:20px;margin-bottom:4px}p{font-size:12px;color:#666;margin-bottom:16px}table{border-collapse:collapse;width:100%}th{background:#0F6E56;color:#fff;padding:8px 10px;font-size:12px;text-align:left}tr:nth-child(even){background:#f0fdf4}</style>
+  </head><body><h1>${title}</h1><p>Generated: ${new Date().toLocaleString('en-IN')} · MentorMatrix ECE Dept</p>
+  <table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${tableRows}</tbody></table>
+<!-- ===== PWA INSTALL BANNER ===== -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#0F6E56,#1D9E75);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 20px rgba(0,0,0,.25)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🎓</div>
+    <div style="flex:1;min-width:0">
+      <div style="color:#fff;font-size:14px;font-weight:800;line-height:1.2">Install MentorMatrix</div>
+      <div style="color:rgba(255,255,255,.8);font-size:11px;margin-top:2px">Add to Home Screen — works offline like an app</div>
+    </div>
+    <button onclick="installPWA()" style="background:#fff;color:#0F6E56;border:none;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;white-space:nowrap">Install</button>
+    <button onclick="dismissBanner()" style="background:rgba(255,255,255,.15);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">✕</button>
+  </div>
+</div>
+
+<!-- iOS Install Instruction Sheet -->
+<div id="ios-install-sheet" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);align-items:flex-end">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:24px;width:100%;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))">
+    <div style="width:40px;height:4px;background:#e5e7eb;border-radius:2px;margin:0 auto 20px"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:48px;margin-bottom:8px">🎓</div>
+      <div style="font-size:20px;font-weight:800;color:#0F6E56">Install MentorMatrix</div>
+      <div style="font-size:13px;color:#6b7280;margin-top:6px">Works offline · Feels like a native app</div>
+    </div>
+    <div style="background:#f5f7fa;border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+        <div style="width:32px;height:32px;background:#0F6E56;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0">1</div>
+        <div><div style="font-size:14px;font-weight:700">Tap the Share button</div><div style="font-size:12px;color:#6b7280;margin-top:2px">Find the <strong>⎦↑</strong> (Share) icon at the bottom of Safari</div></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+        <div style="width:32px;height:32px;background:#0F6E56;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0">2</div>
+        <div><div style="font-size:14px;font-weight:700">Tap "Add to Home Screen"</div><div style="font-size:12px;color:#6b7280;margin-top:2px">Scroll down in the Share sheet to find this option</div></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="width:32px;height:32px;background:#0F6E56;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0">3</div>
+        <div><div style="font-size:14px;font-weight:700">Tap "Add" to confirm</div><div style="font-size:12px;color:#6b7280;margin-top:2px">MentorMatrix will appear on your Home Screen</div></div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('ios-install-sheet').style.display='none'" style="width:100%;padding:14px;background:#0F6E56;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">Got it!</button>
+  </div>
+</div>
+
+</body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=title.replace(/[^a-z0-9]/gi,'_')+'.html';
+  a.click();
+  toast('✓ Word-compatible file downloaded!');
+}
+
+function exportToPDF(){
+  const{title,rows}=getExportData();
+  if(!rows.length){toast('No data to export');return;}
+  const headers=Object.keys(rows[0]);
+  const tableRows=rows.map(r=>`<tr>${headers.map(h=>`<td>${r[h]||'—'}</td>`).join('')}</tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+  <style>@page{margin:15mm}body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a}h1{color:#0F6E56;font-size:16px}p{color:#666;font-size:10px;margin-bottom:12px}table{border-collapse:collapse;width:100%;margin-top:10px}th{background:#0F6E56;color:#fff;padding:6px 8px;text-align:left;font-size:10px}td{border:1px solid #e5e7eb;padding:5px 8px}tr:nth-child(even){background:#f9fafb}@media print{.no-print{display:none}}</style>
+  </head><body>
+  <div class="no-print" style="background:#e3f6ef;padding:12px;margin-bottom:12px;border-radius:8px;font-family:Arial"><b>📄 Printing as PDF:</b> Use your browser's Print dialog → Save as PDF. Then close this tab.</div>
+  <h1>${title}</h1><p>Generated: ${new Date().toLocaleString('en-IN')} · MentorMatrix ECE Dept</p>
+  <table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${tableRows}</tbody></table>
+  <script>window.onload=function(){window.print();}<\/script></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.target='_blank';
+  a.click();
+  toast('✓ Print/PDF dialog opened!');
+}
+
+// ===================== SCREEN ROUTER =====================
+function renderScreen(id){
+  if(!currentUser)return;
+  if(id==='s-attendance')renderStudentAttendance(currentUser.roll);
+  else if(id==='s-marks')renderStudentMarks(currentUser.roll);
+  else if(id==='s-profile')renderStudentProfile(currentUser.roll);
+  else if(id==='s-home')renderStudentHome(currentUser.roll);
+  else if(id==='s-announcements')renderAnnouncements('all');
+  else if(id==='s-scholarships')renderScholarships(currentUser.roll);
+  else if(id==='s-achievements')renderAchievements(currentUser.roll);
+  else if(id==='t-home')renderTutorHome();
+  else if(id==='t-students')renderTutorStudentList();
+  else if(id==='t-attendance')renderTutorAttendance();
+  else if(id==='t-messages')renderTutorMessages();
+  else if(id==='t-announcements')renderTutorAnnouncements();
+  else if(id==='t-marks')renderMarksEntry();
+  else if(id==='parent-screen')renderParentApp(currentUser.roll);
+  else if(id==='h-home')renderHODHome();
+  else if(id==='h-students')renderHODStudentList();
+  else if(id==='h-announcements')renderHODAnnouncements();
+  else if(id==='h-reports')renderHODReports();
+}
+
+// ===================== TOAST =====================
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ===================== INIT =====================
+loadDB();
+window.addEventListener('DOMContentLoaded',()=>{
+  const d=document.getElementById('t-att-date');
+  if(d)d.value=todayDateStr();
+});
+
+// ===================== PWA: ICON GENERATOR =====================
+(function generatePWAAssets(){
+  // Draw app icon on canvas and use as PNG data URL
+  function drawIcon(size){
+    const c=document.createElement('canvas');
+    c.width=c.height=size;
+    const ctx=c.getContext('2d');
+    // Background gradient
+    const g=ctx.createLinearGradient(0,0,size,size);
+    g.addColorStop(0,'#0F6E56');g.addColorStop(1,'#1D9E75');
+    const r=size*0.18;
+    ctx.beginPath();
+    ctx.moveTo(r,0);ctx.lineTo(size-r,0);ctx.quadraticCurveTo(size,0,size,r);
+    ctx.lineTo(size,size-r);ctx.quadraticCurveTo(size,size,size-r,size);
+    ctx.lineTo(r,size);ctx.quadraticCurveTo(0,size,0,size-r);
+    ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();
+    ctx.fillStyle=g;ctx.fill();
+    // Outer ring
+    ctx.beginPath();ctx.arc(size/2,size*0.42,size*0.28,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=size*0.03;ctx.stroke();
+    // Graduation cap
+    const em=size*0.85;const cx=size/2;const cy=size/2;
+    ctx.font=`${em*0.52}px serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#ffffff';
+    ctx.fillText('🎓',cx,cy*0.96);
+    // Bottom label
+    ctx.font=`bold ${size*0.11}px -apple-system,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillText('MentorMatrix',cx,size*0.85);
+    return c.toDataURL('image/png');
+  }
+
+  // Set icons
+  const icon192=drawIcon(192);
+  const icon512=drawIcon(512);
+  const icon180=drawIcon(180);
+  const icon32=drawIcon(32);
+
+  // Link elements
+  const ai=document.getElementById('apple-icon');
+  if(ai){ai.href=icon180;ai.sizes='180x180';}
+  const fav=document.getElementById('pwa-favicon');
+  if(fav){fav.href=icon32;}
+
+  // Build manifest JSON as blob
+  const manifest={
+    name:'MentorMatrix',
+    short_name:'MentorMatrix',
+    description:'Smart Student Management Platform — National Engineering College',
+    start_url:'.',
+    display:'standalone',
+    orientation:'portrait',
+    background_color:'#0F6E56',
+    theme_color:'#0F6E56',
+    lang:'en',
+    scope:'.',
+    categories:['education','productivity'],
+    icons:[
+      {src:icon192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
+      {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'},
+      {src:icon180,sizes:'180x180',type:'image/png'},
+      {src:icon32,  sizes:'32x32', type:'image/png'},
+    ],
+    screenshots:[],
+    shortcuts:[
+      {name:'Student Login',short_name:'Student',description:'Login as a student',url:'.'},
+      {name:'Tutor Login',short_name:'Tutor',description:'Login as a tutor',url:'.'},
+    ],
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const mLink=document.getElementById('pwa-manifest-link');
+  if(mLink)mLink.href=URL.createObjectURL(blob);
+
+  // Store icons for service worker
+  window._pwaIcon192=icon192;
+  window._pwaIcon512=icon512;
+})();
+
+// ===================== PWA: SERVICE WORKER =====================
+const SW_CODE=`
+const CACHE='mentormatrix-v2-cache';
+const XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+
+self.addEventListener('install',e=>{
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE).then(c=>c.addAll([XLSX_URL]).catch(()=>{}))
+  );
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(
+    caches.keys().then(keys=>Promise.all(
+      keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))
+    ))
+  );
+  self.clients.claim();
+});
+self.addEventListener('fetch',e=>{
+  const url=e.request.url;
+  if(url.startsWith('blob:')||url.startsWith('data:'))return;
+  e.respondWith(
+    caches.match(e.request).then(cached=>{
+      if(cached)return cached;
+      return fetch(e.request).then(res=>{
+        if(res&&res.status===200&&res.type==='basic'){
+          const clone=res.clone();
+          caches.open(CACHE).then(c=>c.put(e.request,clone));
+        }
+        return res;
+      }).catch(()=>cached||new Response('Offline',{status:503}));
+    })
+  );
+});
+`;
+
+if('serviceWorker' in navigator){
+  const swBlob=new Blob([SW_CODE],{type:'application/javascript'});
+  const swURL=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL,{scope:'./'})
+    .then(()=>console.log('MentorMatrix SW registered'))
+    .catch(e=>console.warn('SW registration failed:',e));
+}
+
+// ===================== PWA: INSTALL PROMPT =====================
+let _deferredPrompt=null;
+const BANNER_KEY='mm_pwa_dismissed';
+
+function showInstallBanner(){
+  if(localStorage.getItem(BANNER_KEY))return;
+  document.getElementById('pwa-banner').style.display='block';
+}
+function dismissBanner(){
+  document.getElementById('pwa-banner').style.display='none';
+  localStorage.setItem(BANNER_KEY,'1');
+}
+function installPWA(){
+  if(_deferredPrompt){
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(r=>{
+      if(r.outcome==='accepted'){
+        document.getElementById('pwa-banner').style.display='none';
+        localStorage.setItem(BANNER_KEY,'1');
+        toast('✓ MentorMatrix installed! Check your Home Screen.');
+      }
+      _deferredPrompt=null;
+    });
+  } else {
+    // iOS fallback
+    document.getElementById('pwa-banner').style.display='none';
+    document.getElementById('ios-install-sheet').style.display='flex';
+  }
+}
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _deferredPrompt=e;
+  setTimeout(showInstallBanner,3000);
+});
+
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('pwa-banner').style.display='none';
+  _deferredPrompt=null;
+  toast('🎉 MentorMatrix is now installed on your device!');
+});
+
+// iOS detection — show banner after delay if not standalone
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+if(isIOS&&!isStandalone){
+  setTimeout(()=>{
+    if(!localStorage.getItem(BANNER_KEY)){
+      document.getElementById('pwa-banner').style.display='block';
+    }
+  },3000);
+}
+
+// Add install option to both More menus dynamically
+function addInstallOption(){
+  ['s-more','t-more'].forEach(screenId=>{
+    const screen=document.getElementById(screenId);
+    if(!screen)return;
+    const card=screen.querySelector('.scroll .card');
+    if(!card)return;
+    // Only add if not already added
+    if(card.querySelector('[data-install-btn]'))return;
+    const item=document.createElement('div');
+    item.className='list-item';
+    item.setAttribute('data-install-btn','1');
+    item.style.cssText='padding:14px 16px;cursor:pointer';
+    item.innerHTML=`
+      <div class="list-avatar" style="background:#d1fae5;color:#065f46">📲</div>
+      <div class="list-info"><div class="list-name">Install as App</div><div class="list-sub">Add MentorMatrix to your Home Screen</div></div>
+      <div style="color:var(--muted);font-size:20px">›</div>`;
+    item.onclick=installPWA;
+    card.appendChild(item);
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(addInstallOption,500);
+});
+
+</script>
+</body>
+</html>
